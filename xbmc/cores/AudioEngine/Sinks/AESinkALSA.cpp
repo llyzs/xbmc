@@ -35,6 +35,7 @@
 #if defined(HAS_AMLPLAYER)
 #include "cores/amlplayer/AMLUtils.h"
 #endif
+#include "bluetooth/BluetoothManager.h"
 
 #define ALSA_OPTIONS (SND_PCM_NONBLOCK | SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_AUTO_CHANNELS | SND_PCM_NO_AUTO_RESAMPLE)
 
@@ -131,6 +132,11 @@ void CAESinkALSA::GetAESParams(AEAudioFormat format, std::string& params)
 
 bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
 {
+  const char *s = g_bluetoothManager.GetAudioDeviceAddress();
+  CLog::Log(LOGINFO, "CAESinkALSA::Initialize - bluetooth %s", s != NULL ? s : "NULL");
+  if (s != NULL)
+    device = "btheadset";
+
   m_initDevice = device;
   m_initFormat = format;
 
