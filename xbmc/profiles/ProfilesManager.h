@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "profiles/Profile.h"
-#include "settings/ISettingsHandler.h"
+#include "settings/lib/ISettingsHandler.h"
 #include "threads/CriticalSection.h"
 
 class TiXmlNode;
@@ -32,7 +32,6 @@ class CProfilesManager : public ISettingsHandler
 public:
   static CProfilesManager& Get();
 
-  virtual bool OnSettingsLoading();
   virtual void OnSettingsLoaded();
   virtual void OnSettingsSaved();
   virtual void OnSettingsCleared();

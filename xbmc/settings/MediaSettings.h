@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #include <map>
 #include <string>
 
-#include "settings/ISettingCallback.h"
-#include "settings/ISubSettings.h"
+#include "settings/lib/ISettingCallback.h"
+#include "settings/lib/ISubSettings.h"
 #include "settings/VideoSettings.h"
 #include "threads/CriticalSection.h"
 
@@ -96,7 +96,7 @@ public:
 protected:
   CMediaSettings();
   CMediaSettings(const CMediaSettings&);
-  CMediaSettings const& operator=(CMediaSettings const&);
+  CMediaSettings& operator=(CMediaSettings const&);
   virtual ~CMediaSettings();
 
   static std::string GetWatchedContent(const std::string &content);

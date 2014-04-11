@@ -3,7 +3,7 @@
 
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,19 +21,22 @@
  *
  */
 
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
+#include "settings/lib/ISettingsHandler.h"
 #include "utils/StdString.h"
 #include <vector>
 #include <map>
 
 class CSetting;
 
-class CLinuxTimezone : public ISettingCallback
+class CLinuxTimezone : public ISettingCallback, public ISettingsHandler
 {
 public:
    CLinuxTimezone();
 
    virtual void OnSettingChanged(const CSetting *setting);
+
+   virtual void OnSettingsLoaded();
 
    CStdString GetOSConfiguredTimezone();
 

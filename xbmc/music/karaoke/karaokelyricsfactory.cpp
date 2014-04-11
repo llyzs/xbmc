@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 // C++ Implementation: karaokelyricsfactory
 
+#include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "filesystem/File.h"
 
@@ -47,7 +48,8 @@ bool CheckAndCreateLyrics( const CStdString & songName, CKaraokeLyrics ** lyricp
   }
 
   // MIDI/KAR files keep lyrics inside
-  if ( ext.Left(4) == ".mid" || ext == ".kar" )
+  if (StringUtils::StartsWith(ext, ".mid") ||
+      StringUtils::StartsWith(ext, ".kar"))
   {
     if ( lyricptr )
       *lyricptr = new CKaraokeLyricsTextKAR( songName );

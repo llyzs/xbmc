@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "GUILabelControl.h"
 #include "utils/CharsetConverter.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 
@@ -35,8 +36,6 @@ CGUILabelControl::CGUILabelControl(int parentID, int controlID, float posX, floa
   m_startHighlight = m_endHighlight = 0;
   m_startSelection = m_endSelection = 0;
   m_minWidth = 0;
-  if ((labelInfo.align & XBFONT_RIGHT) && m_width)
-    m_posX -= m_width;
 }
 
 CGUILabelControl::~CGUILabelControl(void)
@@ -210,11 +209,17 @@ bool CGUILabelControl::CanFocus() const
 
 void CGUILabelControl::SetLabel(const string &strLabel)
 {
-  m_infoLabel.SetLabel(strLabel, "", GetParentID());
-  if (m_iCursorPos > (int)strLabel.size())
-    m_iCursorPos = strLabel.size();
+  // NOTE: this optimization handles fixed labels only (i.e. not info labels).
+  // One way it might be extended to all labels would be for GUIInfoLabel ( or here )
+  // to store the label prior to parsing, and then compare that against what you're setting.
+  if (m_infoLabel.GetLabel(GetParentID(), false) != strLabel)
+  {
+    m_infoLabel.SetLabel(strLabel, "", GetParentID());
+    if (m_iCursorPos > (int)strLabel.size())
+      m_iCursorPos = strLabel.size();
 
-  SetInvalid();
+    SetInvalid();
+  }
 }
 
 void CGUILabelControl::SetWidthControl(float minWidth, bool bScroll)
@@ -269,7 +274,7 @@ bool CGUILabelControl::OnMessage(CGUIMessage& message)
 
 CStdString CGUILabelControl::ShortenPath(const CStdString &path)
 {
-  if (m_width == 0 || path.IsEmpty())
+  if (m_width == 0 || path.empty())
     return path;
 
   char cDelim = '\0';
@@ -290,7 +295,8 @@ CStdString CGUILabelControl::ShortenPath(const CStdString &path)
   CStdString workPath(path);
   // remove trailing slashes
   if (workPath.size() > 3)
-    if (workPath.Right(3).Compare("://") != 0 && workPath.Right(2).Compare(":\\") != 0)
+    if (!StringUtils::EndsWith(workPath, "://") &&
+        !StringUtils::EndsWith(workPath, ":\\"))
       if (nPos == workPath.size() - 1)
       {
         workPath.erase(workPath.size() - 1);

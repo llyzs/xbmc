@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -86,12 +86,12 @@ bool CDVDDemuxShoutcast::Open(CDVDInputStream* pInput)
       stricmp(strMimeType.c_str(), CONTENT_TYPE_AACPLUS) == 0)
   {
     // need an aac decoder first
-    m_pDemuxStream->codec = CODEC_ID_AAC;
+    m_pDemuxStream->codec = AV_CODEC_ID_AAC;
   }
   else // (stricmp(strMimeType, CONTENT_TYPE_MP3) == 0)
   {
     // default to mp3
-    m_pDemuxStream->codec = CODEC_ID_MP3;
+    m_pDemuxStream->codec = AV_CODEC_ID_MP3;
   }
 
   return true;

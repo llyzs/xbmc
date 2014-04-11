@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,17 +42,43 @@ TEST_F(TestURIUtils, IsInPath)
 
 TEST_F(TestURIUtils, GetDirectory)
 {
-  CStdString ref, var;
+  EXPECT_STREQ("/path/to/", URIUtils::GetDirectory("/path/to/movie.avi"));
+  EXPECT_STREQ("/path/to/", URIUtils::GetDirectory("/path/to/"));
+  EXPECT_STREQ("/path/to/|option=foo", URIUtils::GetDirectory("/path/to/movie.avi|option=foo"));
+  EXPECT_STREQ("/path/to/|option=foo", URIUtils::GetDirectory("/path/to/|option=foo"));
+  EXPECT_STREQ("", URIUtils::GetDirectory("movie.avi"));
+  EXPECT_STREQ("", URIUtils::GetDirectory("movie.avi|option=foo"));
+  EXPECT_STREQ("", URIUtils::GetDirectory(""));
 
-  ref = "/path/to/";
-  URIUtils::GetDirectory("/path/to/movie.avi", var);
-  EXPECT_STREQ(ref.c_str(), var.c_str());
+  // Make sure it works when assigning to the same str as the reference parameter
+  CStdString var = "/path/to/movie.avi|option=foo";
+  var = URIUtils::GetDirectory(var);
+  EXPECT_STREQ("/path/to/|option=foo", var);
 }
 
 TEST_F(TestURIUtils, GetExtension)
 {
   EXPECT_STREQ(".avi",
                URIUtils::GetExtension("/path/to/movie.avi").c_str());
+}
+
+TEST_F(TestURIUtils, HasExtension)
+{
+  EXPECT_TRUE (URIUtils::HasExtension("/path/to/movie.AvI"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path/to/movie"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path/.to/movie"));
+  EXPECT_FALSE(URIUtils::HasExtension(""));
+
+  EXPECT_TRUE (URIUtils::HasExtension("/path/to/movie.AvI", ".avi"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path/to/movie.AvI", ".mkv"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path/.avi/movie", ".avi"));
+  EXPECT_FALSE(URIUtils::HasExtension("", ".avi"));
+
+  EXPECT_TRUE (URIUtils::HasExtension("/path/movie.AvI", ".avi|.mkv|.mp4"));
+  EXPECT_TRUE (URIUtils::HasExtension("/path/movie.AvI", ".mkv|.avi|.mp4"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path/movie.AvI", ".mpg|.mkv|.mp4"));
+  EXPECT_FALSE(URIUtils::HasExtension("/path.mkv/movie.AvI", ".mpg|.mkv|.mp4"));
+  EXPECT_FALSE(URIUtils::HasExtension("", ".avi|.mkv|.mp4"));
 }
 
 TEST_F(TestURIUtils, GetFileName)
@@ -152,12 +178,56 @@ TEST_F(TestURIUtils, SubstitutePath)
 {
   CStdString from, to, ref, var;
 
-  from = "/somepath";
-  to = "/someotherpath";
+  from = "C:\\My Videos";
+  to = "https://myserver/some%20other%20path";
   g_advancedSettings.m_pathSubstitutions.push_back(std::make_pair(from, to));
 
-  ref = "/someotherpath/to/movie.avi";
-  var = URIUtils::SubstitutePath("/somepath/to/movie.avi");
+  from = "/this/path1";
+  to = "/some/other/path2";
+  g_advancedSettings.m_pathSubstitutions.push_back(std::make_pair(from, to));
+
+  from = "davs://otherserver/my%20music%20path";
+  to = "D:\\Local Music\\MP3 Collection";
+  g_advancedSettings.m_pathSubstitutions.push_back(std::make_pair(from, to));
+
+  ref = "https://myserver/some%20other%20path/sub%20dir/movie%20name.avi";
+  var = URIUtils::SubstitutePath("C:\\My Videos\\sub dir\\movie name.avi");
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "C:\\My Videos\\sub dir\\movie name.avi";
+  var = URIUtils::SubstitutePath("https://myserver/some%20other%20path/sub%20dir/movie%20name.avi", true);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "D:\\Local Music\\MP3 Collection\\Phil Collins\\Some CD\\01 - Two Hearts.mp3";
+  var = URIUtils::SubstitutePath("davs://otherserver/my%20music%20path/Phil%20Collins/Some%20CD/01%20-%20Two%20Hearts.mp3");
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "davs://otherserver/my%20music%20path/Phil%20Collins/Some%20CD/01%20-%20Two%20Hearts.mp3";
+  var = URIUtils::SubstitutePath("D:\\Local Music\\MP3 Collection\\Phil Collins\\Some CD\\01 - Two Hearts.mp3", true);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "/some/other/path2/to/movie.avi";
+  var = URIUtils::SubstitutePath("/this/path1/to/movie.avi");
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "/this/path1/to/movie.avi";
+  var = URIUtils::SubstitutePath("/some/other/path2/to/movie.avi", true);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "/no/translation path/";
+  var = URIUtils::SubstitutePath(ref);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "/no/translation path/";
+  var = URIUtils::SubstitutePath(ref, true);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "c:\\no\\translation path";
+  var = URIUtils::SubstitutePath(ref);
+  EXPECT_STREQ(ref.c_str(), var.c_str());
+
+  ref = "c:\\no\\translation path";
+  var = URIUtils::SubstitutePath(ref, true);
   EXPECT_STREQ(ref.c_str(), var.c_str());
 }
 

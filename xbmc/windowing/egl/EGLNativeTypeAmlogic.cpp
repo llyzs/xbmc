@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2011-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ bool CEGLNativeTypeAmlogic::CheckCompatibility()
 
   aml_get_sysfs_str(modalias.c_str(), name, 255);
   CStdString strName = name;
-  strName.Trim();
+  StringUtils::Trim(strName);
   if (strName == "platform:mesonfb")
     return true;
   return false;
@@ -62,12 +62,15 @@ bool CEGLNativeTypeAmlogic::CheckCompatibility()
 
 void CEGLNativeTypeAmlogic::Initialize()
 {
-  aml_cpufreq_limit(true);
+  aml_permissions();
+  aml_cpufreq_min(true);
+  aml_cpufreq_max(true);
   return;
 }
 void CEGLNativeTypeAmlogic::Destroy()
 {
-  aml_cpufreq_limit(false);
+  aml_cpufreq_min(false);
+  aml_cpufreq_max(false);
   return;
 }
 
@@ -220,7 +223,7 @@ bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
 
   // setup gui freescale depending on display resolution
   DisableFreeScale();
-  if (modestr.Left(4).Equals("1080"))
+  if (StringUtils::StartsWith(modestr, "1080"))
   {
     EnableFreeScale();
   }
@@ -240,11 +243,11 @@ bool CEGLNativeTypeAmlogic::ModeToResolution(const char *mode, RESOLUTION_INFO *
     return false;
 
   CStdString fromMode = mode;
-  fromMode.Trim();
+  StringUtils::Trim(fromMode);
   // strips, for example, 720p* to 720p
   // the * indicate the 'native' mode of the display
-  if (fromMode.Right(1) == "*")
-    fromMode = fromMode.Left(std::max(0, (int)fromMode.size() - 1));
+  if (StringUtils::EndsWith(fromMode, "*"))
+    fromMode.erase(fromMode.size() - 1);
 
   if (fromMode.Equals("720p"))
   {
@@ -328,7 +331,7 @@ bool CEGLNativeTypeAmlogic::ModeToResolution(const char *mode, RESOLUTION_INFO *
   res->bFullScreen   = true;
   res->iSubtitles    = (int)(0.965 * res->iHeight);
   res->fPixelRatio   = 1.0f;
-  res->strMode.Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate,
+  res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate,
     res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
 
   return res->iWidth > 0 && res->iHeight> 0;

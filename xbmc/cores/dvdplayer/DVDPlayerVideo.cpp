@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@
 #include "DVDDemuxers/DVDDemux.h"
 #include "DVDDemuxers/DVDDemuxUtils.h"
 #include "DVDOverlayRenderer.h"
-#include "DVDPerformanceCounter.h"
 #include "DVDCodecs/DVDCodecs.h"
 #include "DVDCodecs/Overlay/DVDOverlayCodecCC.h"
 #include "DVDCodecs/Overlay/DVDOverlaySSA.h"
@@ -47,6 +46,7 @@
 #include "utils/log.h"
 
 using namespace std;
+using namespace RenderManager;
 
 class CPulldownCorrection
 {
@@ -146,7 +146,6 @@ CDVDPlayerVideo::CDVDPlayerVideo( CDVDClock* pClock
   m_iNrOfPicturesNotToSkip = 0;
   m_messageQueue.SetMaxDataSize(40 * 1024 * 1024);
   m_messageQueue.SetMaxTimeSize(8.0);
-  g_dvdPerformanceCounter.EnableVideoQueue(&m_messageQueue);
 
   m_iCurrentPts = DVD_NOPTS_VALUE;
   m_iDroppedFrames = 0;
@@ -165,7 +164,6 @@ CDVDPlayerVideo::CDVDPlayerVideo( CDVDClock* pClock
 CDVDPlayerVideo::~CDVDPlayerVideo()
 {
   StopThread();
-  g_dvdPerformanceCounter.DisableVideoQueue();
   g_VideoReferenceClock.StopThread();
 }
 
@@ -258,6 +256,7 @@ void CDVDPlayerVideo::OpenStream(CDVDStreamInfo &hint, CDVDVideoCodec* codec)
   m_stalled = m_messageQueue.GetPacketCount(CDVDMsg::DEMUXER_PACKET) == 0;
   m_started = false;
   m_codecname = m_pVideoCodec->GetName();
+  m_packets.clear();
 }
 
 void CDVDPlayerVideo::CloseStream(bool bWaitForBuffers)
@@ -302,7 +301,6 @@ void CDVDPlayerVideo::OnStartup()
   m_iCurrentPts = DVD_NOPTS_VALUE;
   m_FlipTimeStamp = m_pClock->GetAbsoluteClock();
 
-  g_dvdPerformanceCounter.EnableVideoDecodePerformance(this);
 }
 
 void CDVDPlayerVideo::Process()
@@ -570,6 +568,9 @@ void CDVDPlayerVideo::Process()
         m_iDroppedFrames++;
         iDropped++;
       }
+      // reset the request, the following while loop may break before
+      // setting the flag to a new value
+      bRequestDrop = false;
 
       // loop while no error
       while (!m_bStop)
@@ -757,8 +758,6 @@ void CDVDPlayerVideo::Process()
 
 void CDVDPlayerVideo::OnExit()
 {
-  g_dvdPerformanceCounter.DisableVideoDecodePerformance();
-
   if (m_pOverlayCodecCC)
   {
     m_pOverlayCodecCC->Dispose();
@@ -941,7 +940,7 @@ void CDVDPlayerVideo::ProcessOverlays(DVDVideoPicture* pSource, double pts)
     VecOverlaysIter it = pVecOverlays->begin();
 
     //Check all overlays and render those that should be rendered, based on time and forced
-    //Both forced and subs should check timeing, pts == 0 in the stillframe case
+    //Both forced and subs should check timing
     while (it != pVecOverlays->end())
     {
       CDVDOverlay* pOverlay = *it++;
@@ -950,7 +949,7 @@ void CDVDPlayerVideo::ProcessOverlays(DVDVideoPicture* pSource, double pts)
 
       double pts2 = pOverlay->bForced ? pts : pts - m_iSubtitleDelay;
 
-      if((pOverlay->iPTSStartTime <= pts2 && (pOverlay->iPTSStopTime > pts2 || pOverlay->iPTSStopTime == 0LL)) || pts == 0)
+      if((pOverlay->iPTSStartTime <= pts2 && (pOverlay->iPTSStopTime > pts2 || pOverlay->iPTSStopTime == 0LL)))
       {
         if(pOverlay->IsOverlayType(DVDOVERLAY_TYPE_GROUP))
           overlays.insert(overlays.end(), static_cast<CDVDOverlayGroup*>(pOverlay)->m_overlays.begin()
@@ -988,72 +987,33 @@ static std::string GetRenderFormatName(ERenderFormat format)
     case RENDER_FMT_UYVY422:   return "UYVY";
     case RENDER_FMT_YUYV422:   return "YUY2";
     case RENDER_FMT_VDPAU:     return "VDPAU";
+    case RENDER_FMT_VDPAU_420: return "VDPAU_420";
     case RENDER_FMT_DXVA:      return "DXVA";
     case RENDER_FMT_VAAPI:     return "VAAPI";
     case RENDER_FMT_OMXEGL:    return "OMXEGL";
     case RENDER_FMT_CVBREF:    return "BGRA";
+    case RENDER_FMT_EGLIMG:    return "EGLIMG";
     case RENDER_FMT_BYPASS:    return "BYPASS";
+    case RENDER_FMT_MEDIACODEC:return "MEDIACODEC";
     case RENDER_FMT_NONE:      return "NONE";
   }
   return "UNKNOWN";
 }
 
-static unsigned int GetFlagsColorMatrix(unsigned int color_matrix, unsigned width, unsigned height)
+std::string CDVDPlayerVideo::GetStereoMode()
 {
-  switch(color_matrix)
-  {
-    case 7: // SMPTE 240M (1987)
-      return CONF_FLAGS_YUVCOEF_240M;
-    case 6: // SMPTE 170M
-    case 5: // ITU-R BT.470-2
-    case 4: // FCC
-      return CONF_FLAGS_YUVCOEF_BT601;
-    case 1: // ITU-R Rec.709 (1990) -- BT.709
-      return CONF_FLAGS_YUVCOEF_BT709;
-    case 3: // RESERVED
-    case 2: // UNSPECIFIED
-    default:
-      if(width > 1024 || height >= 600)
-        return CONF_FLAGS_YUVCOEF_BT709;
-      else
-        return CONF_FLAGS_YUVCOEF_BT601;
-      break;
-  }
-}
+  std::string  stereo_mode;
 
-static unsigned int GetFlagsChromaPosition(unsigned int chroma_position)
-{
-  switch(chroma_position)
+  switch(CMediaSettings::Get().GetCurrentVideoSettings().m_StereoMode)
   {
-    case 1: return CONF_FLAGS_CHROMA_LEFT;
-    case 2: return CONF_FLAGS_CHROMA_CENTER;
-    case 3: return CONF_FLAGS_CHROMA_TOPLEFT;
+    case RENDER_STEREO_MODE_SPLIT_VERTICAL:   stereo_mode = "left_right"; break;
+    case RENDER_STEREO_MODE_SPLIT_HORIZONTAL: stereo_mode = "top_bottom"; break;
+    default:                                  stereo_mode = m_hints.stereo_mode; break;
   }
-  return 0;
-}
 
-static unsigned int GetFlagsColorPrimaries(unsigned int color_primaries)
-{
-  switch(color_primaries)
-  {
-    case 1: return CONF_FLAGS_COLPRI_BT709;
-    case 4: return CONF_FLAGS_COLPRI_BT470M;
-    case 5: return CONF_FLAGS_COLPRI_BT470BG;
-    case 6: return CONF_FLAGS_COLPRI_170M;
-    case 7: return CONF_FLAGS_COLPRI_240M;
-  }
-  return 0;
-}
-
-static unsigned int GetFlagsColorTransfer(unsigned int color_transfer)
-{
-  switch(color_transfer)
-  {
-    case 1: return CONF_FLAGS_TRC_BT709;
-    case 4: return CONF_FLAGS_TRC_GAMMA22;
-    case 5: return CONF_FLAGS_TRC_GAMMA28;
-  }
-  return 0;
+  if(CMediaSettings::Get().GetCurrentVideoSettings().m_StereoInvert)
+    stereo_mode = GetStereoModeInvert(stereo_mode);
+  return stereo_mode;
 }
 
 int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
@@ -1061,6 +1021,13 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
   /* picture buffer is not allowed to be modified in this call */
   DVDVideoPicture picture(*src);
   DVDVideoPicture* pPicture = &picture;
+
+  /* grab stereo mode from image if available */
+  if(src->stereo_mode[0])
+    m_hints.stereo_mode = src->stereo_mode;
+
+  /* figure out steremode expected based on user settings and hints */
+  unsigned int stereo_flags = GetStereoModeFlags(GetStereoMode());
 
 #ifdef HAS_VIDEO_PLAYBACK
   double config_framerate = m_bFpsInvalid ? 0.0 : m_fFrameRate;
@@ -1077,7 +1044,8 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
    || ( m_output.chroma_position != pPicture->chroma_position && pPicture->chroma_position != 0 )
    || ( m_output.color_primaries != pPicture->color_primaries && pPicture->color_primaries != 0 )
    || ( m_output.color_transfer  != pPicture->color_transfer  && pPicture->color_transfer  != 0 )
-   || ( m_output.color_range     != pPicture->color_range ))
+   || ( m_output.color_range     != pPicture->color_range )
+   || ( m_output.stereo_flags    != stereo_flags))
   {
     CLog::Log(LOGNOTICE, " fps: %f, pwidth: %i, pheight: %i, dwidth: %i, dheight: %i"
                        , config_framerate
@@ -1102,6 +1070,8 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
       flags |= CONF_FLAGS_FULLSCREEN;
       m_bAllowFullscreen = false; // only allow on first configure
     }
+
+    flags |= stereo_flags;
 
     CLog::Log(LOGDEBUG,"%s - change configuration. %dx%d. framerate: %4.2f. format: %s",__FUNCTION__,pPicture->iWidth, pPicture->iHeight, config_framerate, formatstr.c_str());
     if(!g_renderManager.Configure(pPicture->iWidth
@@ -1131,6 +1101,7 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
     m_output.color_primaries = pPicture->color_primaries;
     m_output.color_transfer  = pPicture->color_transfer;
     m_output.color_range     = pPicture->color_range;
+    m_output.stereo_flags    = stereo_flags;
   }
 
   int    result  = 0;
@@ -1186,11 +1157,9 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
     iFrameSleep = 0;
   }
 
-  // dropping to a very low framerate is not correct (it should not happen at all)
-  iClockSleep = min(iClockSleep, DVD_MSEC_TO_TIME(500));
-  iFrameSleep = min(iFrameSleep, DVD_MSEC_TO_TIME(500));
-
-  if( m_stalled )
+  if( m_started == false )
+    iSleepTime = 0.0;
+  else if( m_stalled )
     iSleepTime = iFrameSleep;
   else
     iSleepTime = iClockSleep;
@@ -1247,7 +1216,7 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
 
   AutoCrop(pPicture);
 
-  int buffer = g_renderManager.WaitForBuffer(m_bStop, std::max(DVD_TIME_TO_MSEC(iSleepTime) + 500, 0));
+  int buffer = g_renderManager.WaitForBuffer(m_bStop, std::max(DVD_TIME_TO_MSEC(iSleepTime) + 500, 1));
   if (buffer < 0)
     return EOS_DROPPED;
 

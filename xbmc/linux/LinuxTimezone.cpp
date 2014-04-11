@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@
 #if defined(TARGET_DARWIN)
 #include "osx/OSXGNUReplacements.h"
 #endif
-#ifdef __FreeBSD__
+#ifdef TARGET_FREEBSD
 #include "freebsd/FreeBSDGNUReplacements.h"
 #endif
 
 #include "Util.h"
+#include "utils/StringUtils.h"
 #include "XBDateTime.h"
-#include "settings/Setting.h"
+#include "settings/lib/Setting.h"
 #include "settings/Settings.h"
 
 using namespace std;
@@ -46,7 +47,7 @@ CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)
    size_t linelen = 0;
    int nameonfourthfield = 0;
    CStdString s;
-   vector<CStdString> tokens;
+   std::vector<std::string> tokens;
 
    // Load timezones
    FILE* fp = fopen("/usr/share/zoneinfo/zone.tab", "r");
@@ -59,7 +60,7 @@ CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)
       {
          tokens.clear();
          s = line;
-         s.TrimLeft(" \t").TrimRight(" \n");
+         StringUtils::Trim(s);
 
          if (s.length() == 0)
             continue;
@@ -67,7 +68,7 @@ CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)
          if (s[0] == '#')
             continue;
 
-         CUtil::Tokenize(s, tokens, " \t");
+         StringUtils::Tokenize(s, tokens, " \t");
          if (tokens.size() < 3)
             continue;
 
@@ -113,8 +114,9 @@ CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)
       while (getdelim(&line, &linelen, '\n', fp) > 0)
       {
          s = line;
-         s.TrimLeft(" \t").TrimRight(" \n");
+         StringUtils::Trim(s);
 
+        /* TODO:STRING_CLEANUP */
          if (s.length() == 0)
             continue;
 
@@ -135,8 +137,8 @@ CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)
             while (s[i] == ' ' || s[i] == '\t') i++;
          }
 
-         countryCode = s.Left(2);
-         countryName = s.Mid(i);
+         countryCode = s.substr(0, 2);
+         countryName = s.substr(i);
 
          m_counties.push_back(countryName);
          m_countryByCode[countryCode] = countryName;
@@ -166,6 +168,12 @@ void CLinuxTimezone::OnSettingChanged(const CSetting *setting)
     // update of locale.timezone and automatically adjust its value
     // and execute OnSettingChanged() for it as well (see above)
   }
+}
+
+void CLinuxTimezone::OnSettingsLoaded()
+{
+  SetTimezone(CSettings::Get().GetString("locale.timezone"));
+  CDateTime::ResetTimezoneBias();
 }
 
 vector<CStdString> CLinuxTimezone::GetCounties()

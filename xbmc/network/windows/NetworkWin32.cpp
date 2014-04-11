@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,12 @@
 #include "utils/log.h"
 #include "threads/SingleLock.h"
 #include "utils/CharsetConverter.h"
+#include "utils/StringUtils.h"
+#include "win32/WIN32Util.h"
 
 // undefine if you want to build without the wlan stuff
 // might be needed for VS2003
-//#define HAS_WIN32_WLAN_API
+#define HAS_WIN32_WLAN_API
 
 #ifdef HAS_WIN32_WLAN_API
 #include "Wlanapi.h"
@@ -53,8 +55,7 @@ CNetworkInterfaceWin32::~CNetworkInterfaceWin32(void)
 
 CStdString& CNetworkInterfaceWin32::GetName(void)
 {
-  if (!g_charsetConverter.isValidUtf8(m_adaptername))
-    g_charsetConverter.unknownToUTF8(m_adaptername);
+  g_charsetConverter.unknownToUTF8(m_adaptername);
   return m_adaptername;
 }
 
@@ -78,7 +79,7 @@ CStdString CNetworkInterfaceWin32::GetMacAddress()
 {
   CStdString result;
   unsigned char* mAddr = m_adapter.Address;
-  result.Format("%02X:%02X:%02X:%02X:%02X:%02X", mAddr[0], mAddr[1], mAddr[2], mAddr[3], mAddr[4], mAddr[5]);
+  result = StringUtils::Format("%02X:%02X:%02X:%02X:%02X:%02X", mAddr[0], mAddr[1], mAddr[2], mAddr[3], mAddr[4], mAddr[5]);
   return result;
 }
 
@@ -115,7 +116,7 @@ CStdString CNetworkInterfaceWin32::GetCurrentWirelessEssId(void)
       PWLAN_INTERFACE_INFO_LIST ppInterfaceList;
       if(WlanEnumInterfaces(hClientHdl,NULL, &ppInterfaceList ) == ERROR_SUCCESS)
       {
-        for(int i=0; i<ppInterfaceList->dwNumberOfItems;i++)
+        for(unsigned int i=0; i<ppInterfaceList->dwNumberOfItems;i++)
         {
           GUID guid = ppInterfaceList->InterfaceInfo[i].InterfaceGuid;
           WCHAR wcguid[64];
@@ -275,8 +276,8 @@ bool CNetworkWin32::PingHost(unsigned long host, unsigned int timeout_ms /* = 20
                                 NULL, ReplyBuffer, sizeof(ReplyBuffer), timeout_ms);
 
   DWORD lastErr = GetLastError();
-  if (lastErr != ERROR_SUCCESS)
-    CLog::Log(LOGERROR, "%s - IcmpSendEcho failed - %s", __FUNCTION__, WUSysMsg(lastErr).c_str());
+  if (lastErr != ERROR_SUCCESS && lastErr != IP_REQ_TIMED_OUT)
+    CLog::Log(LOGERROR, "%s - IcmpSendEcho failed - %s", __FUNCTION__, CWIN32Util::WUSysMsg(lastErr).c_str());
 
   IcmpCloseHandle (hIcmpFile);
 
@@ -301,7 +302,7 @@ bool CNetworkInterfaceWin32::GetHostMacAddress(unsigned long host, CStdString& m
   {
     if (PhysAddrLen == 6)
     {
-      mac.Format("%02X:%02X:%02X:%02X:%02X:%02X", 
+      mac = StringUtils::Format("%02X:%02X:%02X:%02X:%02X:%02X", 
         bPhysAddr[0], bPhysAddr[1], bPhysAddr[2], 
         bPhysAddr[3], bPhysAddr[4], bPhysAddr[5]);
       return true;
@@ -318,8 +319,85 @@ bool CNetworkInterfaceWin32::GetHostMacAddress(unsigned long host, CStdString& m
 std::vector<NetworkAccessPoint> CNetworkInterfaceWin32::GetAccessPoints(void)
 {
    std::vector<NetworkAccessPoint> result;
+#ifdef HAS_WIN32_WLAN_API
+  if (!IsWireless())
+    return result;
 
-   return result;
+  // According to Mozilla: "We could be executing on either Windows XP or Windows
+  // Vista, so use the lower version of the client WLAN API. It seems that the
+  // negotiated version is the Vista version irrespective of what we pass!"
+  // http://dxr.mozilla.org/mozilla-central/source/netwerk/wifi/nsWifiScannerWin.cpp#l51
+  static const int xpWlanClientVersion = 1;
+  DWORD negotiated_version;
+  DWORD dwResult;
+  HANDLE wlan_handle = NULL;
+
+  // Get the handle to the WLAN API
+  dwResult = WlanOpenHandle(xpWlanClientVersion, NULL, &negotiated_version, &wlan_handle);
+  if (dwResult != ERROR_SUCCESS || !wlan_handle)
+  {
+    CLog::Log(LOGERROR, "Could not load the client WLAN API");
+    return result;
+  }
+
+  // Get the list of interfaces (WlanEnumInterfaces allocates interface_list)
+  WLAN_INTERFACE_INFO_LIST *interface_list = NULL;
+  dwResult = WlanEnumInterfaces(wlan_handle, NULL, &interface_list);
+  if (dwResult != ERROR_SUCCESS || !interface_list)
+  {
+    WlanCloseHandle(wlan_handle, NULL);
+    CLog::Log(LOGERROR, "Failed to get the list of interfaces");
+    return result;
+  }
+
+  for (unsigned int i = 0; i < interface_list->dwNumberOfItems; ++i)
+  {
+    GUID guid = interface_list->InterfaceInfo[i].InterfaceGuid;
+    WCHAR wcguid[64];
+    StringFromGUID2(guid, (LPOLESTR)&wcguid, 64);
+    CStdStringW strGuid = wcguid;
+    CStdStringW strAdaptername = m_adapter.AdapterName;
+    if (strGuid == strAdaptername)
+    {
+      WLAN_BSS_LIST *bss_list;
+      HRESULT rv = WlanGetNetworkBssList(wlan_handle,
+                                         &interface_list->InterfaceInfo[i].InterfaceGuid,
+                                         NULL,               // Get all SSIDs
+                                         dot11_BSS_type_any, // unused
+                                         false,              // bSecurityEnabled - unused
+                                         NULL,               // reserved
+                                         &bss_list);
+      if (rv != ERROR_SUCCESS || !bss_list)
+        break;
+      for (unsigned int j = 0; j < bss_list->dwNumberOfItems; ++j)
+      {
+        const WLAN_BSS_ENTRY bss_entry = bss_list->wlanBssEntries[j];
+        // Add the access point info to the list of results
+        CStdString essId((char*)bss_entry.dot11Ssid.ucSSID, (unsigned int)bss_entry.dot11Ssid.uSSIDLength);
+        CStdString macAddress;
+        // macAddress is big-endian, write in byte chunks
+        macAddress = StringUtils::Format("%02x-%02x-%02x-%02x-%02x-%02x",
+          bss_entry.dot11Bssid[0], bss_entry.dot11Bssid[1], bss_entry.dot11Bssid[2],
+          bss_entry.dot11Bssid[3], bss_entry.dot11Bssid[4], bss_entry.dot11Bssid[5]);
+        int signalLevel = bss_entry.lRssi;
+        EncMode encryption = ENC_NONE; // TODO
+        int channel = NetworkAccessPoint::FreqToChannel((float)bss_entry.ulChCenterFrequency * 1000);
+        result.push_back(NetworkAccessPoint(essId, macAddress, signalLevel, encryption, channel));
+      }
+      WlanFreeMemory(bss_list);
+      break;
+    }
+  }
+
+  // Free the interface list
+  WlanFreeMemory(interface_list);
+
+  // Close the handle
+  WlanCloseHandle(wlan_handle, NULL);
+
+#endif
+
+  return result;
 }
 
 void CNetworkInterfaceWin32::GetSettings(NetworkAssignment& assignment, CStdString& ipAddress, CStdString& networkMask, CStdString& defaultGateway, CStdString& essId, CStdString& key, EncMode& encryptionMode)
@@ -388,7 +466,7 @@ void CNetworkInterfaceWin32::GetSettings(NetworkAssignment& assignment, CStdStri
       PWLAN_INTERFACE_INFO_LIST ppInterfaceList;
       if(WlanEnumInterfaces(hClientHdl,NULL, &ppInterfaceList ) == ERROR_SUCCESS)
       {
-        for(int i=0; i<ppInterfaceList->dwNumberOfItems;i++)
+        for(unsigned int i=0; i<ppInterfaceList->dwNumberOfItems;i++)
         {
           GUID guid = ppInterfaceList->InterfaceInfo[i].InterfaceGuid;
           WCHAR wcguid[64];

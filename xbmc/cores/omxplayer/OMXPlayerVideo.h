@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 #include "threads/Thread.h"
 
 #include "DVDDemuxers/DVDDemux.h"
-#include "DVDStreamInfo.h"
 #include "DVDCodecs/Video/DVDVideoCodec.h"
 #include "DVDOverlayContainer.h"
 #include "DVDMessageQueue.h"
@@ -50,20 +49,17 @@ protected:
   bool                      m_open;
   CDVDStreamInfo            m_hints;
   double                    m_iCurrentPts;
-  double                    m_iSleepEndTime;
+  double                    m_nextOverlay;
   OMXClock                  *m_av_clock;
   COMXVideo                 m_omxVideo;
   float                     m_fFrameRate;
   bool                      m_hdmi_clock_sync;
   double                    m_iVideoDelay;
   int                       m_speed;
-  double                    m_FlipTimeStamp; // time stamp of last flippage. used to play at a forced framerate
-  int                       m_audio_count;
   bool                      m_stalled;
   bool                      m_started;
   bool                      m_flush;
   std::string               m_codecname;
-  unsigned int              m_autosync;
   double                    m_iSubtitleDelay;
   bool                      m_bRenderSubs;
   bool                      m_bAllowFullscreen;
@@ -71,9 +67,10 @@ protected:
   float                     m_fForcedAspectRatio;
   unsigned                  m_flags;
 
+  CRect                     m_src_rect;
   CRect                     m_dst_rect;
-  int                       m_view_mode;
 
+  uint32_t                  m_history_valid_pts;
   DllBcmHost                m_DllBcmHost;
 
   CDVDOverlayContainer  *m_pOverlayContainer;
@@ -82,6 +79,7 @@ protected:
   BitstreamStats m_videoStats;
 
   void ProcessOverlays(double pts);
+  double NextOverlay(double pts);
 
   virtual void OnStartup();
   virtual void OnExit();
@@ -115,6 +113,7 @@ public:
   void SetSpeed(int iSpeed);
   std::string GetPlayerInfo();
   int GetVideoBitrate();
+  std::string GetStereoMode();
   double GetOutputDelay();
   double GetSubtitleDelay()                         { return m_iSubtitleDelay; }
   void SetSubtitleDelay(double delay)               { m_iSubtitleDelay = delay; }
@@ -126,7 +125,7 @@ public:
   int GetFreeSpace();
   void  SetVideoRect(const CRect &SrcRect, const CRect &DestRect);
   static void RenderUpdateCallBack(const void *ctx, const CRect &SrcRect, const CRect &DestRect);
-  void ResolutionUpdateCallBack(uint32_t width, uint32_t height);
-  static void ResolutionUpdateCallBack(void *ctx, uint32_t width, uint32_t height);
+  void ResolutionUpdateCallBack(uint32_t width, uint32_t height, float pixel_aspect);
+  static void ResolutionUpdateCallBack(void *ctx, uint32_t width, uint32_t height, float pixel_aspect);
 };
 #endif

@@ -10,8 +10,11 @@ SRCS=AddonsOperations.cpp \
      JSONServiceDescription.cpp \
      PlayerOperations.cpp \
      PlaylistOperations.cpp \
+     ProfilesOperations.cpp \
      PVROperations.cpp \
+     SettingsOperations.cpp \
      SystemOperations.cpp \
+     TextureOperations.cpp \
      VideoLibrary.cpp \
      XBMCOperations.cpp \
 

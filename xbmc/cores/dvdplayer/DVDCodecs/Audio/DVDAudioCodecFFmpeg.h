@@ -2,7 +2,7 @@
 
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,13 +50,12 @@ protected:
   SwrContext*         m_pConvert;
   enum AVSampleFormat m_iSampleFormat;  
   CAEChannelInfo      m_channelLayout;
-  bool                m_bLpcmMode;  
-  bool                m_bNeedConversion;
 
   AVFrame* m_pFrame1;
   int      m_iBufferSize1;
   uint8_t*    m_pBuffer2;
   int      m_iBufferSize2;
+  int      m_iBufferTotalSize2;
 
   bool m_bOpenedCodec;
   int m_iBuffered;

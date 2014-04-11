@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,18 +18,25 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+
 #include "JNIBase.h"
 #include "List.h"
+
 class CJNIDhcpInfo;
 class CJNIWifiInfo;
 class CJNIScanResult;
 class CJNIWifiConfiguration;
+class CJNIWifiManagerMulticastLock;
+
 class CJNIWifiManager : public CJNIBase
 {
 friend class CJNIContext;
 public:
   CJNIWifiManager(const jni::jhobject &object) : CJNIBase(object){};
+
   CJNIList<CJNIWifiConfiguration> getConfiguredNetworks();
+  int addNetwork(const CJNIWifiConfiguration &config);
+  int updateNetwork(const CJNIWifiConfiguration &config);
   bool removeNetwork(int);
   bool enableNetwork(int, bool);
   bool disableNetwork(int);
@@ -43,10 +50,12 @@ public:
   bool saveConfiguration();
   CJNIDhcpInfo getDhcpInfo();
   bool setWifiEnabled(bool);
-  int getWifiState();
+  int  getWifiState();
   bool isWifiEnabled();
   static int calculateSignalLevel(int, int);
   static int compareSignalLevel(int, int);
+  CJNIWifiManagerMulticastLock createMulticastLock(const std::string &tag);
+
 private:
   CJNIWifiManager();
 };

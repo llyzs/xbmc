@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,9 +13,8 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -39,6 +38,8 @@
 #include "utils/JobManager.h"
 #include "utils/log.h"
 #include "utils/XMLUtils.h"
+#include "utils/URIUtils.h"
+#include "utils/StringUtils.h"
 
 #include "WakeOnAccess.h"
 
@@ -174,8 +175,7 @@ public:
       int nest_level = NestDetect::Level();
       if (nest_level > 1)
       {
-        CStdString nest;
-        nest.Format("Nesting:%d", nest_level);
+        CStdString nest = StringUtils::Format("Nesting:%d", nest_level);
         m_dialog->SetLine(2, nest);
       }
     }
@@ -329,18 +329,19 @@ CWakeOnAccess &CWakeOnAccess::Get()
   return sWakeOnAccess;
 }
 
-void CWakeOnAccess::WakeUpHost(const CURL& url)
+bool CWakeOnAccess::WakeUpHost(const CURL& url)
 {
   CStdString hostName = url.GetHostName();
 
-  if (!hostName.IsEmpty())
-    WakeUpHost (hostName, url.Get());
+  if (!hostName.empty())
+    return WakeUpHost (hostName, url.Get());
+  return true;
 }
 
-void CWakeOnAccess::WakeUpHost (const CStdString& hostName, const string& customMessage)
+bool CWakeOnAccess::WakeUpHost (const CStdString& hostName, const string& customMessage)
 {
   if (!IsEnabled())
-    return; // bail if feature is turned off
+    return true; // bail if feature is turned off
 
   WakeUpEntry server;
 
@@ -353,18 +354,23 @@ void CWakeOnAccess::WakeUpHost (const CStdString& hostName, const string& custom
     if (nesting.IsNested()) // we might get in trouble if it gets called back in loop
       CLog::Log(LOGWARNING,"WakeOnAccess recursively called on gui-thread [%d]", NestDetect::Level());
 
-    WakeUpHost(server);
+    bool ret = WakeUpHost(server);
+
+    if (!ret) // extra log if we fail for some reason
+      CLog::Log(LOGWARNING,"WakeOnAccess failed to bring up [%s] - there may be trouble ahead !", hostName.c_str());
 
     TouchHostEntry(hostName);
+
+    return ret;
   }
+  return true;
 }
 
 #define LOCALIZED(id) g_localizeStrings.Get(id)
 
-void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
+bool CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
 {
-  CStdString heading = LOCALIZED(13027);
-  heading.Format (heading, server.host);
+  CStdString heading = StringUtils::Format(LOCALIZED(13027), server.host.c_str());
 
   ProgressDialogHelper dlg (heading);
 
@@ -374,7 +380,7 @@ void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
     if (dlg.ShowAndWait (waitObj, m_netinit_sec, LOCALIZED(13028)) != ProgressDialogHelper::Success)
     {
       CLog::Log(LOGNOTICE,"WakeOnAccess timeout/cancel while waiting for network");
-      return; // timedout or canceled
+      return false; // timedout or canceled
     }
   }
 
@@ -384,7 +390,7 @@ void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
     if (g_application.getNetwork().PingHost(dst_ip, server.ping_port, 500)) // quick ping with short timeout to not block too long
     {
       CLog::Log(LOGNOTICE,"WakeOnAccess success exit, server already running");
-      return;
+      return true;
     }
   }
 
@@ -392,9 +398,9 @@ void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
   {
     CLog::Log(LOGERROR,"WakeOnAccess failed to send. (Is it blocked by firewall?)");
 
-    if (g_application.IsCurrentThread() || !g_application.IsPlaying())
+    if (g_application.IsCurrentThread() || !g_application.m_pPlayer->IsPlaying())
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, heading, LOCALIZED(13029));
-    return;
+    return false;
   }
 
   {
@@ -409,9 +415,11 @@ void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
     if (result != ProgressDialogHelper::Success)
     {
       CLog::Log(LOGNOTICE,"WakeOnAccess timeout/cancel while waiting for response");
-      return; // timedout or canceled
+      return false; // timedout or canceled
     }
   }
+
+  // we have ping response ; just add extra wait-for-services before returning if requested
 
   {
     WaitCondition waitObj ; // wait uninteruptable fixed time for services ..
@@ -420,6 +428,7 @@ void CWakeOnAccess::WakeUpHost(const WakeUpEntry& server)
 
     CLog::Log(LOGNOTICE,"WakeOnAccess sequence completed, server started");
   }
+  return true;
 }
 
 bool CWakeOnAccess::FindOrTouchHostEntry (const CStdString& hostName, WakeUpEntry& result)
@@ -475,7 +484,7 @@ static void AddHost (const CStdString& host, vector<string>& hosts)
     if (host.Equals((*it).c_str()))
       return; // allready there ..
 
-  if (!host.IsEmpty())
+  if (!host.empty())
     hosts.push_back(host);
 }
 
@@ -488,7 +497,12 @@ static void AddHostFromDatabase(const DatabaseSettings& setting, vector<string>&
 void CWakeOnAccess::QueueMACDiscoveryForHost(const CStdString& host)
 {
   if (IsEnabled())
-    CJobManager::GetInstance().AddJob(new CMACDiscoveryJob(host), this);
+  {
+    if (URIUtils::IsHostOnLAN(host, true))
+      CJobManager::GetInstance().AddJob(new CMACDiscoveryJob(host), this);
+    else
+      CLog::Log(LOGNOTICE, "%s - skip Mac discovery for non-local host '%s'", __FUNCTION__, host.c_str());
+  }
 }
 
 static void AddHostsFromMediaSource(const CMediaSource& source, std::vector<std::string>& hosts)
@@ -559,8 +573,7 @@ void CWakeOnAccess::SaveMACDiscoveryResult(const CStdString& host, const CStdStr
       {
         if (IsEnabled()) // show notification only if we have general feature enabled
         {
-          CStdString message = LOCALIZED(13034);
-          message.Format(message, host);
+          CStdString message = StringUtils::Format(LOCALIZED(13034), host.c_str());
           CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, heading, message, 4000, true, 3000);
         }
 
@@ -581,8 +594,7 @@ void CWakeOnAccess::SaveMACDiscoveryResult(const CStdString& host, const CStdStr
   CLog::Log(LOGDEBUG, "%s - Create new entry for host '%s'", __FUNCTION__, host.c_str());
   if (IsEnabled()) // show notification only if we have general feature enabled
   {
-    CStdString message = LOCALIZED(13035);
-    message.Format(message, host);
+    CStdString message = StringUtils::Format(LOCALIZED(13035), host.c_str());
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, heading, message, 4000, true, 3000);
   }
 
@@ -609,8 +621,7 @@ void CWakeOnAccess::OnJobComplete(unsigned int jobID, bool success, CJob *job)
     if (IsEnabled())
     {
       CStdString heading = LOCALIZED(13033);
-      CStdString message = LOCALIZED(13036);
-      message.Format(message, host);
+      CStdString message = StringUtils::Format(LOCALIZED(13036), host.c_str());
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, heading, message, 4000, true, 3000);
     }
   }
@@ -628,30 +639,35 @@ void CWakeOnAccess::OnSettingsLoaded()
   LoadFromXML();
 }
 
-void CWakeOnAccess::OnSettingsSaved() const
+void CWakeOnAccess::OnSettingsSaved()
 {
   bool enabled = CSettings::Get().GetBool("powermanagement.wakeonaccess");
 
   if (enabled != IsEnabled())
   {
-    CWakeOnAccess& woa = CWakeOnAccess::Get();
-
-    woa.SetEnabled(enabled);
+    SetEnabled(enabled);
 
     if (enabled)
-      woa.QueueMACDiscoveryForAllRemotes();
+      QueueMACDiscoveryForAllRemotes();
   }
+}
+
+void CWakeOnAccess::SetEnabled(bool enabled) 
+{
+  m_enabled = enabled;
+
+  CLog::Log(LOGNOTICE,"WakeOnAccess - Enabled:%s", m_enabled ? "TRUE" : "FALSE");
 }
 
 void CWakeOnAccess::LoadFromXML()
 {
   bool enabled = CSettings::Get().GetBool("powermanagement.wakeonaccess");
-  SetEnabled(enabled);
 
   CXBMCTinyXML xmlDoc;
   if (!xmlDoc.LoadFile(GetSettingFile()))
   {
-    CLog::Log(LOGNOTICE, "%s - unable to load:%s", __FUNCTION__, GetSettingFile().c_str());
+    if (enabled)
+      CLog::Log(LOGNOTICE, "%s - unable to load:%s", __FUNCTION__, GetSettingFile().c_str());
     return;
   }
 
@@ -665,6 +681,8 @@ void CWakeOnAccess::LoadFromXML()
   m_entries.clear();
 
   CLog::Log(LOGNOTICE,"WakeOnAccess - Load settings :");
+
+  SetEnabled(enabled);
 
   int tmp;
   if (XMLUtils::GetInt(pRootElement, "netinittimeout", tmp, 0, 5 * 60))

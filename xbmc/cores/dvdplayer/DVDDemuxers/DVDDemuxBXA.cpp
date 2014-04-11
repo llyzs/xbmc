@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "DVDDemuxBXA.h"
 #include "DVDDemuxUtils.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "../DVDClock.h"
 
 // AirTunes audio Demuxer.
@@ -41,9 +42,7 @@ public:
   {}
   void GetStreamInfo(string& strInfo)
   {
-    CStdString info;
-    info.Format("%s", m_codec.c_str());
-    strInfo = info;
+    strInfo = StringUtils::Format("%s", m_codec.c_str());
   }
 };
 
@@ -91,7 +90,7 @@ bool CDVDDemuxBXA::Open(CDVDInputStream* pInput)
   m_stream->iBitRate        = m_header.sampleRate * m_header.channels * m_header.bitsPerSample;
   m_stream->iChannels       = m_header.channels;
   m_stream->type            = STREAM_AUDIO;
-  m_stream->codec           = CODEC_ID_PCM_S16LE;
+  m_stream->codec           = AV_CODEC_ID_PCM_S16LE;
 
   return true;
 }

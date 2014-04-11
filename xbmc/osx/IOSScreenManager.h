@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,10 +36,12 @@
   bool _externalScreen;
   IOSEAGLView *_glView;
   IOSExternalTouchController *_externalTouchController;
+  UIInterfaceOrientation _lastTouchControllerOrientation;
 }
 @property unsigned int  _screenIdx;
 @property (readonly, getter=isExternalScreen)bool _externalScreen;
 @property (assign, setter=setView:) IOSEAGLView *_glView;
+@property UIInterfaceOrientation _lastTouchControllerOrientation;
 
 // init the screenmanager with our eaglview
 //- (id)      initWithView:(IOSEAGLView *)view;

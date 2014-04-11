@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,9 +66,27 @@ struct jcast_helper<std::string, jstring>
 };
 
 template <>
+struct jcast_helper<std::vector<std::string>, jobjectArray>
+{
+    static std::vector<std::string> cast(jobjectArray const &v);
+};
+
+template <typename T>
+struct jcast_helper<std::vector<T>, jobjectArray>
+{
+    static std::vector<T> cast(jobjectArray const &v);
+};
+
+template <>
 struct jcast_helper<jhstring, std::string>
 {
     static jhstring cast(const std::string &v);
+};
+
+template <>
+struct jcast_helper<jhobjectArray, std::vector<std::string> >
+{
+    static jhobjectArray cast(const std::vector<std::string> &v);
 };
 
 template <>
@@ -76,9 +94,47 @@ struct jcast_helper<std::string, jhstring>
 {
     static std::string cast(jhstring const &v)
     {
-        return jcast_helper<std::string, jstring>::cast(v);
+        return jcast_helper<std::string, jstring>::cast(v.get());
     }
 };
+
+template <>
+struct jcast_helper<std::vector<std::string>, jhobjectArray>
+{
+    static std::vector<std::string> cast(jhobjectArray const &v)
+    {
+        return jcast_helper<std::vector<std::string>, jobjectArray>::cast(v.get());
+    }
+};
+
+template <typename T>
+struct jcast_helper<std::vector<T>, jhobjectArray>
+{
+    static std::vector<T> cast(jhobjectArray const &v)
+    {
+        return jcast_helper<std::vector<T>, jobjectArray>::cast(v.get());
+    }
+};
+
+
+template <typename T>
+std::vector<T> jcast_helper<std::vector<T>, jobjectArray>::cast(jobjectArray const &v)
+{
+  JNIEnv *env = xbmc_jnienv();
+  jsize size = 0;
+  if(v)
+    size = env->GetArrayLength(v);
+
+  std::vector<T> vec;
+  vec.reserve(size);
+
+  for (int i = 0; i < size; i++)
+  {
+    T element((jhobject)env->GetObjectArrayElement(v, i));
+    vec.emplace_back(element);
+  }
+  return vec;
+}
 
 
 } // namespace details
@@ -391,10 +447,16 @@ Ret get_field(const char *clsname, const char *name)
 */
 // Get static field
 
-template <typename Ret, typename T>
-Ret get_static_field(JNIEnv *env, jholder<T> const &obj, const char *name, const char *signature)
+template <typename Ret>
+Ret get_static_field(JNIEnv *env, jhobject const &obj, const char *name, const char *signature)
 {
     return details::jni_helper<Ret>::get_static_field(env, get_class(env, obj), get_static_field_id(env, obj, name, signature));
+}
+
+template <typename Ret>
+Ret get_static_field(JNIEnv *env, jhclass const &cls, const char *name, const char *signature)
+{
+    return details::jni_helper<Ret>::get_static_field(env, cls, get_static_field_id(env, cls, name, signature));
 }
 
 template <typename Ret, typename T>
