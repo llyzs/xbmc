@@ -4,6 +4,9 @@
  *      Copyright (C) 2010 Team Boxee
  *      http://www.boxee.tv
  *
+ *      Copyright (C) 2010-2013 Team XBMC
+ *      http://xbmc.org
+ *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
@@ -18,11 +21,10 @@
  *  along with XBMC; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
+ *  Note: parts of this code comes from libdvdread.
+ *  Jorgen Lundman and team boxee did the necessary modifications to support udf 2.5
  *
- * Note: parts of this code comes from libdvdread.
- * Jorgen Lundman did the necessary modifications to support udf 2.5
  */
-
 #include "File.h"
 
 /**
@@ -44,6 +46,7 @@ struct Partition {
   uint32_t AccessType;
   uint32_t Start;
   uint32_t Length;
+  uint32_t Start_Correction;
 };
 
 struct AD {
@@ -73,6 +76,7 @@ struct FileAD {
     uint32_t num_AD;
     uint16_t Partition;
     uint32_t Partition_Start;
+    uint32_t Partition_Start_Correction;
     uint8_t  Type;
     uint16_t Flags;
     struct AD AD_chain[UDF_MAX_AD_CHAINS];

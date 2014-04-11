@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include <cdio/mmc.h>
 #include <cdio/cd_types.h>
 
-#if defined(_WIN32)
+#if defined(TARGET_WINDOWS)
 #pragma comment(lib, "libcdio.dll.lib")
 #endif
 
@@ -400,8 +400,8 @@ void CCdIoSupport::PrintAnalysis(int fs, int num_audio)
   case FS_ISO_9660_INTERACTIVE:
   case FS_ISO_HFS:
   case FS_ISO_UDF:
-    CLog::Log(LOGINFO, "ISO 9660: %i blocks, label `%.32s'\n",
-              m_nIsofsSize, buffer[0] + 40);
+    CLog::Log(LOGINFO, "ISO 9660: %i blocks, label %s",
+              m_nIsofsSize, m_strDiscLabel.c_str());
     break;
   }
 
@@ -882,8 +882,8 @@ CCdInfo* CCdIoSupport::GetCdInfo(char* cDeviceFileName)
                   " ISO 9660 blocks: %6i",
                   j++, i, m_nStartTrack, m_nIsofsSize);
 
-        CLog::Log(LOGINFO, "ISO 9660: %i blocks, label '%.32s'\n",
-                  m_nIsofsSize, buffer[0] + 40);
+        CLog::Log(LOGINFO, "ISO 9660: %i blocks, label %s",
+                  m_nIsofsSize, m_strDiscLabel.c_str());
         m_nFs |= MULTISESSION;
         ti.nfsInfo = m_nFs;
       }

@@ -38,7 +38,7 @@ CPlayerSelectionRule::~CPlayerSelectionRule()
 void CPlayerSelectionRule::Initialize(TiXmlElement* pRule)
 {
   m_name = pRule->Attribute("name");
-  if (!m_name || m_name.IsEmpty())
+  if (!m_name || m_name.empty())
     m_name = "un-named";
 
   CLog::Log(LOGDEBUG, "CPlayerSelectionRule::Initialize: creating rule: %s", m_name.c_str());
@@ -118,7 +118,7 @@ void CPlayerSelectionRule::GetPlayers(const CFileItem& item, VECPLAYERCORES &vec
   if (m_tDVDFile >= 0 && (m_tDVDFile > 0) != item.IsDVDFile()) return;
   if (m_tDVDImage >= 0 && (m_tDVDImage > 0) != item.IsDVDImage()) return;
 
-  CRegExp regExp;
+  CRegExp regExp(false, CRegExp::autoUtf8);
 
   if (m_bStreamDetails)
   {

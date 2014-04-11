@@ -49,13 +49,13 @@ class CPlayerController;
 #include "cores/IPlayerCallback.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "PlayListPlayer.h"
-#include "settings/ISettingsHandler.h"
-#include "settings/ISettingCallback.h"
-#include "settings/ISubSettings.h"
-#if !defined(_WIN32) && defined(HAS_DVD_DRIVE)
+#include "settings/lib/ISettingsHandler.h"
+#include "settings/lib/ISettingCallback.h"
+#include "settings/lib/ISubSettings.h"
+#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
 #include "storage/DetectDVDType.h"
 #endif
-#ifdef _WIN32
+#ifdef TARGET_WINDOWS
 #include "win32/WIN32Util.h"
 #endif
 #include "utils/Stopwatch.h"
@@ -64,6 +64,8 @@ class CPlayerController;
 #endif
 #include "windowing/XBMC_events.h"
 #include "threads/Thread.h"
+
+#include "ApplicationPlayer.h"
 
 class CSeekHandler;
 class CKaraokeLyricsManager;
@@ -109,16 +111,10 @@ protected:
   int       m_iPlayList;
 };
 
-typedef enum
-{
-  PLAYBACK_CANCELED = -1,
-  PLAYBACK_FAIL = 0,
-  PLAYBACK_OK = 1,
-} PlayBackRet;
-
 class CApplication : public CXBApplicationEx, public IPlayerCallback, public IMsgTargetCallback,
                      public ISettingCallback, public ISettingsHandler, public ISubSettings
 {
+  friend class CApplicationPlayer;
 public:
 
   enum ESERVERS
@@ -157,9 +153,10 @@ public:
   void RestartApp();
   void UnloadSkin(bool forReload = false);
   bool LoadUserWindows();
-  void ReloadSkin();
+  void ReloadSkin(bool confirm = false);
   const CStdString& CurrentFile();
   CFileItem& CurrentFileItem();
+  CFileItem& CurrentUnstackedItem();
   virtual bool OnMessage(CGUIMessage& message);
   PLAYERCOREID GetCurrentPlayer();
   virtual void OnPlayBackEnded();
@@ -181,10 +178,6 @@ public:
   void Restart(bool bSamePosition = true);
   void DelayedPlayerRestart();
   void CheckDelayedPlayerRestart();
-  bool IsPlaying() const;
-  bool IsPaused() const;
-  bool IsPlayingAudio() const;
-  bool IsPlayingVideo() const;
   bool IsPlayingFullScreenVideo() const;
   bool IsStartingPlayback() const { return m_bPlaybackStarting; }
   bool IsFullScreen();
@@ -198,6 +191,7 @@ public:
   void CheckScreenSaverAndDPMS();
   void CheckPlayingProgress();
   void ActivateScreenSaver(bool forceType = false);
+  void CloseNetworkShares();
 
   virtual void Process();
   void ProcessSlow();
@@ -205,13 +199,12 @@ public:
   float GetVolume(bool percentage = true) const;
   void SetVolume(float iValue, bool isPercentage = true);
   bool IsMuted() const;
+  bool IsMutedInternal() const { return m_muted; }
   void ToggleMute(void);
   void SetMute(bool mute);
   void ShowVolumeBar(const CAction *action = NULL);
-  int GetPlaySpeed() const;
   int GetSubtitleDelay() const;
   int GetAudioDelay() const;
-  void SetPlaySpeed(int iSpeed);
   void ResetSystemIdleTimer();
   void ResetScreenSaverTimer();
   void StopScreenSaverTimer();
@@ -269,16 +262,15 @@ public:
   MEDIA_DETECT::CAutorun* m_Autorun;
 #endif
 
-#if !defined(_WIN32) && defined(HAS_DVD_DRIVE)
+#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
   MEDIA_DETECT::CDetectDVDMedia m_DetectDVDType;
 #endif
 
-  boost::shared_ptr<IPlayer> m_pPlayer;
+  CApplicationPlayer* m_pPlayer;
 
   inline bool IsInScreenSaver() { return m_bScreenSave; };
   int m_iScreenSaveLock; // spiff: are we checking for a lock? if so, ignore the screensaver state, if -1 we have failed to input locks
 
-  unsigned int m_iPlayerOPSeq;  // used to detect whether an OpenFile request on player is canceled by us.
   bool m_bPlaybackStarting;
   typedef enum
   {
@@ -359,6 +351,9 @@ public:
   bool SetLanguage(const CStdString &strLanguage);
 
   ReplayGainSettings& GetReplayGainSettings() { return m_replayGainSettings; }
+
+  void SetLoggingIn(bool loggingIn) { m_loggingIn = loggingIn; }
+
 protected:
   virtual bool OnSettingsSaving() const;
 
@@ -373,16 +368,22 @@ protected:
   void LoadSkin(const boost::shared_ptr<ADDON::CSkinInfo>& skin);
 
   bool m_skinReloading; // if true we disallow LoadSkin until ReloadSkin is called
+  bool m_skinReverting;
+
+  bool m_loggingIn;
 
 #if defined(TARGET_DARWIN_IOS)
   friend class CWinEventsIOS;
+#endif
+#if defined(TARGET_ANDROID)
+  friend class CWinEventsAndroid;
 #endif
   // screensaver
   bool m_bScreenSave;
   ADDON::AddonPtr m_screenSaver;
 
   // timer information
-#ifdef _WIN32
+#ifdef TARGET_WINDOWS
   CWinIdleTimer m_idleTimer;
   CWinIdleTimer m_screenSaverTimer;
 #else
@@ -408,7 +409,6 @@ protected:
   CStdString m_prevMedia;
   CSplash* m_splash;
   ThreadIdentifier m_threadID;       // application thread ID.  Used in applicationMessanger to know where we are firing a thread with delay from.
-  PLAYERCOREID m_eCurrentPlayer;
   bool m_bInitializing;
   bool m_bPlatformDirectories;
 
@@ -416,7 +416,6 @@ protected:
   CFileItemPtr m_progressTrackingItem;
   bool m_progressTrackingPlayCountUpdate;
 
-  int m_iPlaySpeed;
   int m_currentStackPosition;
   int m_nextPlaylistItem;
 
@@ -448,7 +447,7 @@ protected:
   bool ProcessGamepad(float frameTime);
   bool ProcessEventServer(float frameTime);
   bool ProcessPeripherals(float frameTime);
-  bool ProcessJoystickEvent(const std::string& joystickName, int button, bool isAxis, float fAmount, unsigned int holdTime = 0);
+  bool ProcessJoystickEvent(const std::string& joystickName, int button, short inputType, float fAmount, unsigned int holdTime = 0);
   bool ExecuteInputAction(const CAction &action);
   int  GetActiveWindowID(void);
 

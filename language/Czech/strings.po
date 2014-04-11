@@ -1,13 +1,12 @@
 # XBMC Media Center language file
-# XBMC-core v12.0
 msgid ""
 msgstr ""
-"Project-Id-Version: XBMC Main Translation Project (Frodo)\n"
+"Project-Id-Version: XBMC Main\n"
 "Report-Msgid-Bugs-To: http://trac.xbmc.org/\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: XBMC Translation Team\n"
-"Language-Team: Czech (http://www.transifex.com/projects/p/XBMC-Main-Frodo/language/cs/)\n"
+"Language-Team: Czech (http://www.transifex.com/projects/p/xbmc-main/language/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -52,7 +51,7 @@ msgstr "Počasí"
 
 msgctxt "#9"
 msgid "xbmc media center"
-msgstr "xbmc centrum médií"
+msgstr "Multimediální centrum XBMC"
 
 msgctxt "#11"
 msgid "Monday"
@@ -289,6 +288,10 @@ msgstr "Západ"
 msgctxt "#91"
 msgid "East"
 msgstr "Východ"
+
+msgctxt "#92"
+msgid "Variable"
+msgstr "Proměnná"
 
 msgctxt "#98"
 msgid "View: Auto"
@@ -570,6 +573,10 @@ msgctxt "#167"
 msgid "Cancel file operations"
 msgstr "Zrušit operace se soubory"
 
+msgctxt "#168"
+msgid "%s- %s"
+msgstr "%s- %s"
+
 msgctxt "#169"
 msgid "Resolution"
 msgstr "Rozlišení"
@@ -850,25 +857,17 @@ msgctxt "#249"
 msgid "Music"
 msgstr "Hudba"
 
-msgctxt "#250"
-msgid "Visualization"
-msgstr "Vizualizace"
-
 msgctxt "#251"
 msgid "Select destination directory"
 msgstr "Vyberte cílový adresář"
-
-msgctxt "#252"
-msgid "Output stereo to all speakers"
-msgstr "Přehrávat stereo zvuk ze všech reproduktorů"
 
 msgctxt "#253"
 msgid "Number of channels"
 msgstr "Počet kanálů"
 
 msgctxt "#254"
-msgid "- DTS capable receiver"
-msgstr "- DTS kompatibilní přijímač"
+msgid "DTS capable receiver"
+msgstr "DTS kompatibilní přijímač"
 
 msgctxt "#255"
 msgid "CDDB"
@@ -1007,8 +1006,8 @@ msgid "Font"
 msgstr "Písmo"
 
 msgctxt "#289"
-msgid "- Size"
-msgstr "- Velikost"
+msgid "Size"
+msgstr "Velikost"
 
 msgctxt "#290"
 msgid "Dynamic range compression"
@@ -1042,21 +1041,17 @@ msgctxt "#298"
 msgid "Bookmarks"
 msgstr "Záložky"
 
-msgctxt "#299"
-msgid "- AAC capable receiver"
-msgstr "- AAC kompatibilní přijímač"
-
 msgctxt "#300"
-msgid "- MP1 capable receiver"
-msgstr "- MP1 kompatibilní přijímač"
+msgid "MP1 capable receiver"
+msgstr "MP1 kompatibilní přijímač"
 
 msgctxt "#301"
-msgid "- MP2 capable receiver"
-msgstr "- MP2 kompatibilní přijímač"
+msgid "MP2 capable receiver"
+msgstr "MP2 kompatibilní přijímač"
 
 msgctxt "#302"
-msgid "- MP3 capable receiver"
-msgstr "- MP3 kompatibilní přijímač"
+msgid "MP3 capable receiver"
+msgstr "MP3 kompatibilní přijímač"
 
 msgctxt "#303"
 msgid "Delay"
@@ -1077,10 +1072,6 @@ msgstr "Neprokládané"
 msgctxt "#308"
 msgid "Original stream's language"
 msgstr "Originální jazyk proudu"
-
-msgctxt "#309"
-msgid "User Interface language"
-msgstr "Jazyk uživatelského rozhraní"
 
 msgctxt "#312"
 msgid "(0=auto)"
@@ -1182,17 +1173,9 @@ msgctxt "#336"
 msgid "Framerate conversion"
 msgstr "Převod rychlosti snímků"
 
-msgctxt "#337"
-msgid "Audio output"
-msgstr "Zvukový výstup"
-
 msgctxt "#338"
-msgid "Analog"
-msgstr "Analogový"
-
-msgctxt "#339"
-msgid "Optical/Coax"
-msgstr "Optický/Koaxiální"
+msgid "Fixed"
+msgstr "Pevné"
 
 msgctxt "#340"
 msgid "Various artists"
@@ -1218,21 +1201,13 @@ msgctxt "#345"
 msgid "Year"
 msgstr "Rok"
 
-msgctxt "#346"
-msgid "Boost volume level on downmix"
-msgstr "Zvyšovat hlasitost při downmixu"
-
 msgctxt "#347"
-msgid "- DTS-HD capable receiver"
+msgid "DTS-HD capable receiver"
 msgstr "DTS-HD kompatibilní přijímač"
 
-msgctxt "#348"
-msgid "- Multichannel LPCM capable receiver"
-msgstr "- Vícekanálový kompatibilní přijímač LPCM"
-
 msgctxt "#349"
-msgid "- TrueHD capable receiver"
-msgstr "TrueHD kompatibilní přijímač"
+msgid "TrueHD capable receiver"
+msgstr " TrueHD kompatibilní přijímač"
 
 msgctxt "#350"
 msgid "Programs"
@@ -1291,8 +1266,8 @@ msgid "Sort by: File"
 msgstr "Řazení: soubor"
 
 msgctxt "#364"
-msgid "- Dolby Digital (AC3) capable receiver"
-msgstr "- Dolby Digital (AC3) kompatibilní přijímač"
+msgid "Dolby Digital (AC3) capable receiver"
+msgstr "Dolby Digital (AC3) kompatibilní přijímač"
 
 msgctxt "#365"
 msgid "Sort by: Name"
@@ -1506,10 +1481,6 @@ msgctxt "#419"
 msgid "High"
 msgstr "Vysoký"
 
-msgctxt "#420"
-msgid "HDMI"
-msgstr "HDMI"
-
 msgctxt "#422"
 msgid "Delete album info"
 msgstr "Smazat informace o albu"
@@ -1582,10 +1553,6 @@ msgctxt "#439"
 msgid "Cache"
 msgstr "Vyrovnávací paměť"
 
-msgctxt "#440"
-msgid "Harddisk"
-msgstr "Pevný disk"
-
 msgctxt "#441"
 msgid "UDF"
 msgstr "UDF"
@@ -1613,10 +1580,6 @@ msgstr "DVD"
 msgctxt "#447"
 msgid "Autorun media"
 msgstr "Automaticky přehrávat média"
-
-msgctxt "#448"
-msgid "LCD"
-msgstr "LCD"
 
 msgctxt "#449"
 msgid "Enabled"
@@ -1701,10 +1664,6 @@ msgstr "Umístění OSD"
 msgctxt "#470"
 msgid "Credits"
 msgstr "Zásluhy"
-
-msgctxt "#471"
-msgid "Modchip"
-msgstr "Modchip"
 
 msgctxt "#474"
 msgid "Off"
@@ -1825,10 +1784,6 @@ msgstr "Nahrávám informace ze souborů..."
 msgctxt "#507"
 msgid "Sort by: Usage"
 msgstr "Řazení: využití"
-
-msgctxt "#510"
-msgid "Enable visualizations"
-msgstr "Povolit vizualizace"
 
 msgctxt "#511"
 msgid "Enable video mode switching"
@@ -2082,6 +2037,10 @@ msgctxt "#576"
 msgid "Times played"
 msgstr "Počet přehrání"
 
+msgctxt "#577"
+msgid "Date Taken"
+msgstr "Datum pořízení"
+
 msgctxt "#580"
 msgid "Sort direction"
 msgstr "Směr řazení"
@@ -2266,14 +2225,6 @@ msgctxt "#636"
 msgid "Custom"
 msgstr "Vlastní"
 
-msgctxt "#637"
-msgid "Replay gain"
-msgstr "Normalizace zvuku"
-
-msgctxt "#638"
-msgid "Replaygain volume adjustments"
-msgstr "Mód normalizace (úprava hlasitosti)"
-
 msgctxt "#639"
 msgid "Use track levels"
 msgstr "Použít úrovně stopy"
@@ -2281,18 +2232,6 @@ msgstr "Použít úrovně stopy"
 msgctxt "#640"
 msgid "Use album levels"
 msgstr "Použít úrovně alba"
-
-msgctxt "#641"
-msgid "PreAmp Level - Replay gained files"
-msgstr "Úroveň - Normalizované skladby"
-
-msgctxt "#642"
-msgid "PreAmp Level - Non replay gained files"
-msgstr "Úroveň - Nenormalizované skladby"
-
-msgctxt "#643"
-msgid "Avoid clipping on replay gained files"
-msgstr "Vyvarovat se předimenzování hlasitosti u normalizovaných skladeb"
 
 msgctxt "#644"
 msgid "Crop black bars"
@@ -2382,6 +2321,10 @@ msgctxt "#665"
 msgid "Compression level"
 msgstr "Úroveň komprese"
 
+msgctxt "#666"
+msgid "Verbose logging..."
+msgstr "Podrobný záznam..."
+
 msgctxt "#700"
 msgid "Cleaning up library"
 msgstr "Čistím knihovnu"
@@ -2399,8 +2342,8 @@ msgid "Network"
 msgstr "Síť"
 
 msgctxt "#706"
-msgid "- Server"
-msgstr "- Server"
+msgid "Server"
+msgstr "Server"
 
 msgctxt "#708"
 msgid "Use an HTTP proxy server to access the internet"
@@ -2419,8 +2362,8 @@ msgid "HTTP proxy"
 msgstr "HTTP Proxy"
 
 msgctxt "#715"
-msgid "- Assignment"
-msgstr "- Přiřazení"
+msgid "Assignment"
+msgstr "Přiřazení"
 
 msgctxt "#716"
 msgid "Automatic (DHCP)"
@@ -2431,20 +2374,20 @@ msgid "Manual (Static)"
 msgstr "Manuálně (Statická IP)"
 
 msgctxt "#719"
-msgid "- IP address"
-msgstr "- IP adresa"
+msgid "IP address"
+msgstr "IP adresa"
 
 msgctxt "#720"
-msgid "- Netmask"
-msgstr "- Maska sítě"
+msgid "Netmask"
+msgstr "Maska sítě"
 
 msgctxt "#721"
-msgid "- Default gateway"
-msgstr "- Výchozí brána"
+msgid "Default gateway"
+msgstr "Výchozí brána"
 
 msgctxt "#722"
-msgid "- DNS server"
-msgstr "- DNS server"
+msgid "DNS server"
+msgstr "Server DNS"
 
 msgctxt "#723"
 msgid "Save & restart"
@@ -2471,32 +2414,32 @@ msgid "FTP server"
 msgstr "FTP server"
 
 msgctxt "#730"
-msgid "- Port"
-msgstr "- Port"
+msgid "Port"
+msgstr "Port"
 
 msgctxt "#732"
 msgid "Save & apply"
 msgstr "Uložit a použít"
 
 msgctxt "#733"
-msgid "- Password"
-msgstr "- Heslo"
+msgid "Password"
+msgstr "Heslo"
 
 msgctxt "#734"
 msgid "No pass"
 msgstr "Bez hesla"
 
 msgctxt "#735"
-msgid "- Character set"
-msgstr "- Znaková sada"
+msgid "Character set"
+msgstr "Znaková sada"
 
 msgctxt "#736"
-msgid "- Style"
-msgstr "- Styl"
+msgid "Style"
+msgstr "Styl"
 
 msgctxt "#737"
-msgid "- Colour"
-msgstr "- Barva"
+msgid "Colour"
+msgstr "Barva"
 
 msgctxt "#738"
 msgid "Normal"
@@ -2627,16 +2570,16 @@ msgid "Network interface"
 msgstr "Síťové rozhraní"
 
 msgctxt "#776"
-msgid "- Wireless network name (ESSID)"
-msgstr "- Název bezdrátové sítě (ESSID)"
+msgid "Wireless network name (ESSID)"
+msgstr "Název bezdrátové sítě (ESSID)"
 
 msgctxt "#777"
-msgid "- Wireless password"
-msgstr "- Heslo bezdrátové sítě"
+msgid "Wireless password"
+msgstr "Heslo bezdrátové sítě"
 
 msgctxt "#778"
-msgid "- Wireless security"
-msgstr "- Bezdrátové zabezpečení"
+msgid "Wireless security"
+msgstr "Zabezpečení bezdrátové sítě"
 
 msgctxt "#779"
 msgid "Save and apply network interface settings"
@@ -2723,8 +2666,8 @@ msgid "Library Update"
 msgstr "Aktualizace knihovny"
 
 msgctxt "#800"
-msgid "Music library needs to rescan art from tags"
-msgstr "Knihovna hudby potřebuje znovu prohledat art na základě značek"
+msgid "Music library needs to rescan tags from files."
+msgstr "Hudební knihovna potřebuje znovu načíst značky ze souborů."
 
 msgctxt "#801"
 msgid "Would you like to scan now?"
@@ -2742,6 +2685,10 @@ msgctxt "#852"
 msgid "Valid port range is 1024-65535"
 msgstr "Platný rozsah portu je 1024-65535"
 
+msgctxt "#997"
+msgid "Add Pictures..."
+msgstr "Přidat obrázky..."
+
 msgctxt "#998"
 msgid "Add Music..."
 msgstr "Přidat hudbu..."
@@ -2751,8 +2698,8 @@ msgid "Add Videos..."
 msgstr "Přidat video..."
 
 msgctxt "#1000"
-msgid "- Preview"
-msgstr "- Náhled"
+msgid "Preview"
+msgstr "Náhled"
 
 msgctxt "#1001"
 msgid "Unable to connect"
@@ -2922,10 +2869,6 @@ msgctxt "#1043"
 msgid "Program Add-ons"
 msgstr "Doplňky programů"
 
-msgctxt "#1044"
-msgid "Set plugin thumb"
-msgstr "Nastavit náhled modulu"
-
 msgctxt "#1045"
 msgid "Add-on settings"
 msgstr "Nastavení doplňků"
@@ -2939,8 +2882,8 @@ msgid "Other..."
 msgstr "Jiné..."
 
 msgctxt "#1048"
-msgid "- Username"
-msgstr "- Uživatelské jméno"
+msgid "Username"
+msgstr "Uživatelské jméno"
 
 msgctxt "#1049"
 msgid "Script settings"
@@ -2953,6 +2896,30 @@ msgstr "Singly"
 msgctxt "#1051"
 msgid "Enter web address"
 msgstr "Zadejte webovou adresu"
+
+msgctxt "#1180"
+msgid "Proxy type"
+msgstr "Typ proxy"
+
+msgctxt "#1181"
+msgid "HTTP"
+msgstr "HTTP"
+
+msgctxt "#1182"
+msgid "SOCKS4"
+msgstr "SOCKS4"
+
+msgctxt "#1183"
+msgid "SOCKS4A"
+msgstr "SOCKS4A"
+
+msgctxt "#1184"
+msgid "SOCKS5"
+msgstr "SOCKS5"
+
+msgctxt "#1185"
+msgid "SOCKS5 with remote dns resolving"
+msgstr "SOCKS5 se vzdáleným překladem jmen dns"
 
 msgctxt "#1200"
 msgid "SMB client"
@@ -3091,12 +3058,16 @@ msgid "Device name"
 msgstr "Název zařízení"
 
 msgctxt "#1272"
-msgid "- Use password protection"
-msgstr "- Použít ochranu heslem"
+msgid "Use password protection"
+msgstr "Použít zabezpečení heslem"
 
 msgctxt "#1273"
 msgid "AirPlay"
 msgstr "AirPlay"
+
+msgctxt "#1274"
+msgid "AirTunes"
+msgstr "AirTunes"
 
 msgctxt "#1275"
 msgid "Filter %s"
@@ -3178,6 +3149,10 @@ msgctxt "#1412"
 msgid "windy"
 msgstr "větrno"
 
+msgctxt "#1413"
+msgid "Patches"
+msgstr "Opravy"
+
 msgctxt "#1414"
 msgid "Thunderstorm"
 msgstr "bouřka"
@@ -3197,6 +3172,10 @@ msgstr "kroupy"
 msgctxt "#1418"
 msgid "Thunderstorms"
 msgstr "Bouřky"
+
+msgctxt "#1419"
+msgid "Shallow"
+msgstr "mělký"
 
 msgctxt "#1420"
 msgid "Moderate"
@@ -3218,6 +3197,10 @@ msgctxt "#1424"
 msgid "Overcast"
 msgstr "Zamračeno"
 
+msgctxt "#1425"
+msgid "Pellets"
+msgstr "Pelety"
+
 msgctxt "#1426"
 msgid "Hail"
 msgstr "Krupobití"
@@ -3225,6 +3208,18 @@ msgstr "Krupobití"
 msgctxt "#1427"
 msgid "Smoke"
 msgstr "Dým"
+
+msgctxt "#1428"
+msgid "Volcanic"
+msgstr "Sopečný"
+
+msgctxt "#1429"
+msgid "Ash"
+msgstr "Popel"
+
+msgctxt "#1430"
+msgid "Widespread"
+msgstr "Rozšířený"
 
 msgctxt "#1431"
 msgid "Dust"
@@ -3238,9 +3233,25 @@ msgctxt "#1433"
 msgid "Spray"
 msgstr "Sprška"
 
+msgctxt "#1434"
+msgid "Whirls"
+msgstr "Víry"
+
 msgctxt "#1435"
 msgid "Sandstorm"
 msgstr "Písečná bouře"
+
+msgctxt "#1436"
+msgid "Blowing"
+msgstr "Foukání"
+
+msgctxt "#1437"
+msgid "Pellet"
+msgstr "Kroupy"
+
+msgctxt "#1438"
+msgid "Small"
+msgstr "Malá"
 
 msgctxt "#1439"
 msgid "and"
@@ -3249,6 +3260,22 @@ msgstr "a"
 msgctxt "#1440"
 msgid "Sleet"
 msgstr "Plískanice"
+
+msgctxt "#1441"
+msgid "with"
+msgstr "s"
+
+msgctxt "#1442"
+msgid "Chance"
+msgstr "Šance"
+
+msgctxt "#1443"
+msgid "of"
+msgstr "z"
+
+msgctxt "#1444"
+msgid "Funnel"
+msgstr "Nálevka"
 
 msgctxt "#1445"
 msgid "Cloud"
@@ -3261,6 +3288,10 @@ msgstr "Neznámý"
 msgctxt "#1448"
 msgid "Precipitation"
 msgstr "Srážky"
+
+msgctxt "#1449"
+msgid "Partial"
+msgstr "Částečný"
 
 msgctxt "#1450"
 msgid "Put display to sleep when idle"
@@ -3285,10 +3316,6 @@ msgstr "Chyba skriptu: %s"
 msgctxt "#2101"
 msgid "Newer version needed - See log"
 msgstr "Je vyžadována novější verze - Viz záznam"
-
-msgctxt "#4501"
-msgid "Enable LCD/VFD"
-msgstr "Povolit LCD/VFD"
 
 msgctxt "#10000"
 msgid "Home"
@@ -3394,17 +3421,81 @@ msgctxt "#10034"
 msgid "Settings - Profiles"
 msgstr "Nastavení - Profily"
 
-msgctxt "#10040"
-msgid "Addon browser"
-msgstr "Prohlížeč doplňků"
+msgctxt "#10035"
+msgid "Reset"
+msgstr "Obnovit"
 
-msgctxt "#10100"
-msgid "Yes/No dialog"
-msgstr "Dialog Ano/Ne"
+msgctxt "#10037"
+msgid "Standard"
+msgstr "Standardní"
 
-msgctxt "#10101"
-msgid "Progress dialog"
-msgstr "Dialog s průběhem stavu"
+msgctxt "#10038"
+msgid "Advanced"
+msgstr "Pokročilé"
+
+msgctxt "#10042"
+msgid "Are you sure you want to reset the settings in this category?"
+msgstr "Opravdu si přejete obnovit nastavení v této kategorii?"
+
+msgctxt "#10043"
+msgid "Help"
+msgstr "Nápověda"
+
+msgctxt "#10044"
+msgid "No help available"
+msgstr "Žádná dostupná nápověda"
+
+msgctxt "#10126"
+msgid "File browser"
+msgstr "Prohlížeč souborů"
+
+msgctxt "#10128"
+msgid "Network setup"
+msgstr "Nastavení sítě"
+
+msgctxt "#10129"
+msgid "Media source"
+msgstr "Zdroj médií"
+
+msgctxt "#10130"
+msgid "Profile settings"
+msgstr "Nastavení profilu"
+
+msgctxt "#10131"
+msgid "Lock settings"
+msgstr "Uzamknout nastavení"
+
+msgctxt "#10132"
+msgid "Content settings"
+msgstr "Nastavení obsahu"
+
+msgctxt "#10134"
+msgid "Favourites"
+msgstr "Oblíbené"
+
+msgctxt "#10135"
+msgid "Songs/Info"
+msgstr "Písně/Info"
+
+msgctxt "#10136"
+msgid "Smart playlist editor"
+msgstr "Editor chytrého seznamu stop"
+
+msgctxt "#10137"
+msgid "Smart playlist rule editor"
+msgstr "Editor pravidel chytrého seznamu stop"
+
+msgctxt "#10139"
+msgid "Pictures/Info"
+msgstr "Obrázky/Info"
+
+msgctxt "#10140"
+msgid "Add-on settings"
+msgstr "Nastavení doplňků"
+
+msgctxt "#10146"
+msgid "Add-ons/Info"
+msgstr "Doplňky/Info"
 
 msgctxt "#10210"
 msgid "Looking for subtitles..."
@@ -3494,17 +3585,9 @@ msgctxt "#10524"
 msgid "Movie info"
 msgstr "Informace o filmu"
 
-msgctxt "#12000"
-msgid "Select dialog"
-msgstr "Vyberte dialog"
-
 msgctxt "#12001"
 msgid "Music/Info"
 msgstr "Hudba/Info"
-
-msgctxt "#12002"
-msgid "Dialog OK"
-msgstr "Dialog OK"
 
 msgctxt "#12003"
 msgid "Videos/Info"
@@ -3517,14 +3600,6 @@ msgstr "Skripty/Info"
 msgctxt "#12005"
 msgid "Fullscreen video"
 msgstr "Video na celou obrazovku"
-
-msgctxt "#12006"
-msgid "Audio visualization"
-msgstr "Vizualizace hudby"
-
-msgctxt "#12008"
-msgid "File stacking dialog"
-msgstr "Dialog při spojování souborů"
 
 msgctxt "#12009"
 msgid "Rebuild index..."
@@ -3681,10 +3756,6 @@ msgstr "Přístup odmítnut"
 msgctxt "#12346"
 msgid "Password retry limit exceeded."
 msgstr "Počet pokusů byl překročen."
-
-msgctxt "#12347"
-msgid "The system will now shut off."
-msgstr "Systém se nyní vypne."
 
 msgctxt "#12348"
 msgid "Item locked"
@@ -3862,10 +3933,6 @@ msgctxt "#13013"
 msgid "Reboot"
 msgstr "Restartovat"
 
-msgctxt "#13014"
-msgid "Minimize"
-msgstr "Minimalizovat"
-
 msgctxt "#13015"
 msgid "Power button action"
 msgstr "Činnost tlačítka vypnutí"
@@ -3906,6 +3973,50 @@ msgctxt "#13025"
 msgid "Joystick unplugged"
 msgstr "Joystick odpojen"
 
+msgctxt "#13026"
+msgid "Try to wake remote servers on access"
+msgstr "Pokusit se při přístupu probudit vzdálený server."
+
+msgctxt "#13027"
+msgid "Wake on Lan (%s)"
+msgstr "Probuzení počítače na dálku (%s)"
+
+msgctxt "#13028"
+msgid "Waiting for network to connect..."
+msgstr "Čeká se na spojení se sítí..."
+
+msgctxt "#13029"
+msgid "Failed to execute Wake on Lan!"
+msgstr "Probuzení po síti selhalo!"
+
+msgctxt "#13030"
+msgid "Waiting for server to wake up..."
+msgstr "Čekám na probuzení serveru..."
+
+msgctxt "#13031"
+msgid "Extended wait for server to wake up..."
+msgstr "Prodloužené čekání na server..."
+
+msgctxt "#13032"
+msgid "Waiting for services to launch..."
+msgstr "Čeká se na spuštění služeb..."
+
+msgctxt "#13033"
+msgid "MAC Discovery"
+msgstr "Zjišťování MAC"
+
+msgctxt "#13034"
+msgid "Updated for %s"
+msgstr "Aktualizováno pro %s"
+
+msgctxt "#13035"
+msgid "Found for %s"
+msgstr "Nalezeno pro %s"
+
+msgctxt "#13036"
+msgid "Failed for %s"
+msgstr "Selhalo pro %s"
+
 msgctxt "#13050"
 msgid "Running low on battery"
 msgstr "Nízká úroveň baterie"
@@ -3941,10 +4052,6 @@ msgstr "Vyzkoušet rozlišení obrazovky"
 msgctxt "#13110"
 msgid "Save resolution?"
 msgstr "Použít rozlišení obrazovky?"
-
-msgctxt "#13111"
-msgid "Would you like to keep this resolution?"
-msgstr "Přejete si ponechat toto rozlišení obrazovky?"
 
 msgctxt "#13112"
 msgid "High quality upscaling"
@@ -3985,10 +4092,6 @@ msgstr "VDPAU"
 msgctxt "#13121"
 msgid "VDPAU HQ Upscaling level"
 msgstr "VDPAU - HQ přepočet"
-
-msgctxt "#13122"
-msgid "VDPAU Studio level color conversion"
-msgstr "VDPAU - rozsah barevného prostoru Studio levels"
 
 msgctxt "#13130"
 msgid "Blank other displays"
@@ -4041,10 +4144,6 @@ msgstr "Brána"
 msgctxt "#13161"
 msgid "Primary DNS"
 msgstr "Primární DNS"
-
-msgctxt "#13162"
-msgid "Initialize failed"
-msgstr "Inicializace selhala"
 
 msgctxt "#13170"
 msgid "Never"
@@ -4227,8 +4326,8 @@ msgid "Fan speed override"
 msgstr "Manuální nastavení rychlosti chladiče"
 
 msgctxt "#13303"
-msgid "- Fonts"
-msgstr "- Písma"
+msgid "Fonts"
+msgstr "Písma"
 
 msgctxt "#13304"
 msgid "Enable flipping bi-directional strings"
@@ -4289,10 +4388,6 @@ msgstr "Spustit promítání"
 msgctxt "#13318"
 msgid "Recursive slideshow"
 msgstr "Rekurzivní promítání"
-
-msgctxt "#13319"
-msgid "Randomize"
-msgstr "Náhodně"
 
 msgctxt "#13320"
 msgid "Stereo"
@@ -4403,8 +4498,8 @@ msgid "Scan for new content"
 msgstr "Vyhledat nový obsah"
 
 msgctxt "#13350"
-msgid "Now playing..."
-msgstr "Nyní přehrávám..."
+msgid "Current playlist"
+msgstr "Aktuální seznam skladeb"
 
 msgctxt "#13351"
 msgid "Album information"
@@ -4506,21 +4601,9 @@ msgctxt "#13388"
 msgid "Preset"
 msgstr "Předvolba"
 
-msgctxt "#13389"
-msgid "There are no presets available\nfor this visualization"
-msgstr "Pro tuto vizualizaci nejsou\nk dispozici žádné předvolby"
-
-msgctxt "#13390"
-msgid "There are no settings available\nfor this visualization"
-msgstr "Pro tuto vizualizaci není\nk dispozici žádné nastavení"
-
 msgctxt "#13391"
 msgid "Eject/Load"
 msgstr "Vysunout/Načíst"
-
-msgctxt "#13392"
-msgid "Use visualization if playing audio"
-msgstr "Při přehrávání hudby použít vizualizaci"
 
 msgctxt "#13393"
 msgid "Calculate size"
@@ -4690,6 +4773,14 @@ msgctxt "#13434"
 msgid "Play only this"
 msgstr "Přehrát pouze zvolené video"
 
+msgctxt "#13435"
+msgid "Enable HQ Scalers for scalings above"
+msgstr "Povolit HQ přepočty pro výše uvedená škálování."
+
+msgctxt "#13455"
+msgid "Software"
+msgstr "Softwarově"
+
 msgctxt "#13500"
 msgid "A/V sync method"
 msgstr "Metoda synchronizace A/V"
@@ -4705,10 +4796,6 @@ msgstr "dle videa (vynechat/duplikovat audio)"
 msgctxt "#13503"
 msgid "Video clock (Resample audio)"
 msgstr "dle videa (přizpůsobit rychlost audia)"
-
-msgctxt "#13504"
-msgid "Maximum resample amount (%)"
-msgstr "Maximální změna rychlosti (%)"
 
 msgctxt "#13505"
 msgid "Resample quality"
@@ -4753,6 +4840,10 @@ msgstr "Místní grafika"
 msgctxt "#13515"
 msgid "No art"
 msgstr "Žádná grafika"
+
+msgctxt "#13516"
+msgid "Add art"
+msgstr "Přidat obrázek"
 
 msgctxt "#13550"
 msgid "Pause during refresh rate change"
@@ -4801,10 +4892,6 @@ msgstr "Multifunkční dálkové ovládání (Harmony)"
 msgctxt "#13620"
 msgid "Apple Remote Error"
 msgstr "Chyba dálkového ovladače Apple"
-
-msgctxt "#13621"
-msgid "Apple Remote support could be enabled."
-msgstr "Podpora dálkového ovladače Apple může být zapnuta."
 
 msgctxt "#14000"
 msgid "Stack"
@@ -4898,41 +4985,21 @@ msgctxt "#14024"
 msgid "Enter the nearest large town"
 msgstr "Zadejte nejbližší velké město"
 
-msgctxt "#14025"
-msgid "Video/Audio/DVD cache - Harddisk"
-msgstr "Vyrovnávací paměť Video/Audio/DVD - Pevný disk"
-
 msgctxt "#14026"
 msgid "Video cache - DVD-ROM"
 msgstr "Vyrovnávací paměť videa - DVDROM"
 
-msgctxt "#14027"
-msgid "- Local Network"
-msgstr "- Místní síť"
-
-msgctxt "#14028"
-msgid "- Internet"
-msgstr "- Internet"
-
 msgctxt "#14030"
 msgid "Audio cache - DVD-ROM"
 msgstr "Vyrovnávací paměť zvuku - DVDROM"
-
-msgctxt "#14031"
-msgid "- Local Network"
-msgstr "- Místní síť"
-
-msgctxt "#14032"
-msgid "- Internet"
-msgstr "- Internet"
 
 msgctxt "#14034"
 msgid "DVD cache - DVD-ROM"
 msgstr "Vyrovnávací paměť DVD - DVDROM"
 
 msgctxt "#14035"
-msgid "- Local Network"
-msgstr "- Místní síť"
+msgid "Local Network"
+msgstr "Místní síť"
 
 msgctxt "#14036"
 msgid "Services"
@@ -5083,8 +5150,8 @@ msgid "Remove from favourites"
 msgstr "Odebrat z oblíbených"
 
 msgctxt "#14078"
-msgid "- Colours"
-msgstr "- Barvy"
+msgid "Colours"
+msgstr "Barvy"
 
 msgctxt "#14079"
 msgid "Timezone country"
@@ -5170,6 +5237,10 @@ msgctxt "#14100"
 msgid "Stop ripping CD"
 msgstr "Zastavit kopírování CD"
 
+msgctxt "#15014"
+msgid "Keep"
+msgstr "Ponechat"
+
 msgctxt "#15015"
 msgid "Remove"
 msgstr "Odstranit"
@@ -5223,8 +5294,8 @@ msgid "Skin default"
 msgstr "Výchozí hodnoty motivu"
 
 msgctxt "#15111"
-msgid "- Theme"
-msgstr "- Motiv"
+msgid "Theme"
+msgstr "Motiv"
 
 msgctxt "#15112"
 msgid "Default theme"
@@ -5234,30 +5305,6 @@ msgctxt "#15200"
 msgid "Last.fm"
 msgstr "Last.fm"
 
-msgctxt "#15201"
-msgid "Submit songs to Last.fm"
-msgstr "Odesílat skladby na Last.fm"
-
-msgctxt "#15202"
-msgid "Last.fm username"
-msgstr "Uživatelské jméno Last.fm"
-
-msgctxt "#15203"
-msgid "Last.fm password"
-msgstr "Heslo Last.fm"
-
-msgctxt "#15204"
-msgid "Unable to handshake: sleeping..."
-msgstr "Nelze provést handshake: vyčkávám..."
-
-msgctxt "#15205"
-msgid "Please update XBMC"
-msgstr "Aktualizujte prosím XBMC"
-
-msgctxt "#15206"
-msgid "Bad authorization: Check username and password"
-msgstr "Neplatné ověření: Zkontrolujte uživatelské jméno a heslo"
-
 msgctxt "#15207"
 msgid "Connected"
 msgstr "Připojeno"
@@ -5266,29 +5313,9 @@ msgctxt "#15208"
 msgid "Not connected"
 msgstr "Nepřipojeno"
 
-msgctxt "#15209"
-msgid "Submit interval %i"
-msgstr "Interval odesílání %i"
-
-msgctxt "#15210"
-msgid "Cached %i songs"
-msgstr "V mezipaměti %i skladeb"
-
-msgctxt "#15211"
-msgid "Submitting..."
-msgstr "Odesílám..."
-
-msgctxt "#15212"
-msgid "Submitting in %i secs"
-msgstr "Odesílám za %i sekund"
-
 msgctxt "#15213"
 msgid "Play using..."
 msgstr "Přehrát pomocí..."
-
-msgctxt "#15214"
-msgid "Use smoothed A/V synchronization"
-msgstr "Používat hladkou synchronizaci A/V"
 
 msgctxt "#15215"
 msgid "Hide file names in thumbs view"
@@ -5297,218 +5324,6 @@ msgstr "Nezobrazovat názvy souborů při zobrazení náhledů"
 msgctxt "#15216"
 msgid "Play in party mode"
 msgstr "Přehrát v režimu \"párty\""
-
-msgctxt "#15217"
-msgid "Submit songs to Libre.fm"
-msgstr "Odesílat skladby na Libre.fm"
-
-msgctxt "#15218"
-msgid "Libre.fm username"
-msgstr "Uživatelské jméno Libre.fm"
-
-msgctxt "#15219"
-msgid "Libre.fm password"
-msgstr "Heslo Libre.fm"
-
-msgctxt "#15220"
-msgid "Libre.fm"
-msgstr "Libre.fm"
-
-msgctxt "#15221"
-msgid "Song submission"
-msgstr "Odesílání skladeb"
-
-msgctxt "#15250"
-msgid "Submit Last.fm radio to Last.fm"
-msgstr "Odesílat Last.fm rádio na Last.fm"
-
-msgctxt "#15251"
-msgid "Connecting to Last.fm..."
-msgstr "Připojuji k Last.fm..."
-
-msgctxt "#15252"
-msgid "Selecting station..."
-msgstr "Volím stanici..."
-
-msgctxt "#15253"
-msgid "Search similar artists..."
-msgstr "Vyhledat podobné umělce..."
-
-msgctxt "#15254"
-msgid "Search similar tags..."
-msgstr "Vyhledat podobné značky..."
-
-msgctxt "#15255"
-msgid "Your profile (%name%)"
-msgstr "Váš profil (%name%)"
-
-msgctxt "#15256"
-msgid "Overall top tags"
-msgstr "Celkově nejpopulárnější značky"
-
-msgctxt "#15257"
-msgid "Top artists for tag %name%"
-msgstr "Nejlepší umělci pro značku %name%"
-
-msgctxt "#15258"
-msgid "Top albums for tag %name%"
-msgstr "Nejlepší alba pro značku %name%"
-
-msgctxt "#15259"
-msgid "Top tracks for tag %name%"
-msgstr "Nejlepší skladby pro značku %name%"
-
-msgctxt "#15260"
-msgid "Listen to tag %name% Last.fm radio"
-msgstr "Poslouchat značku %name% na Last.fm radiu"
-
-msgctxt "#15261"
-msgid "Similar artists as %name%"
-msgstr "Podobní umělci jako %name%"
-
-msgctxt "#15262"
-msgid "Top %name% albums"
-msgstr "Nejlepší alba %name%"
-
-msgctxt "#15263"
-msgid "Top %name% tracks"
-msgstr "Nejlepší skladby %name%"
-
-msgctxt "#15264"
-msgid "Top %name% tags"
-msgstr "Nejlepší značky %name%"
-
-msgctxt "#15265"
-msgid "Biggest fans of %name%"
-msgstr "Největší fanoušci %name%"
-
-msgctxt "#15266"
-msgid "Listen to %name% fans Last.fm radio"
-msgstr "Poslouchat fanoušky %name% na Last.fm radiu"
-
-msgctxt "#15267"
-msgid "Listen to %name% similar artists Last.fm radio"
-msgstr "Poslouchat umělce podobné %name% na Last.fm radiu"
-
-msgctxt "#15268"
-msgid "Top artists for user %name%"
-msgstr "Nejlepší umělci uživatele %name%"
-
-msgctxt "#15269"
-msgid "Top albums for user %name%"
-msgstr "Nejlepší alba uživatele %name%"
-
-msgctxt "#15270"
-msgid "Top tracks for user %name%"
-msgstr "Nejlepší skladby uživatele %name%"
-
-msgctxt "#15271"
-msgid "Friends of user %name%"
-msgstr "Přátelé uživatele %name%"
-
-msgctxt "#15272"
-msgid "Neighbours of user %name%"
-msgstr "Sousedé uživatele %name%"
-
-msgctxt "#15273"
-msgid "Weekly artist chart for %name%"
-msgstr "Týdenní žebříček umělců pro %name%"
-
-msgctxt "#15274"
-msgid "Weekly album chart for %name%"
-msgstr "Týdenní žebříček alb pro %name%"
-
-msgctxt "#15275"
-msgid "Weekly track chart for %name%"
-msgstr "Týdenní žebříček skladeb pro %name%"
-
-msgctxt "#15276"
-msgid "Listen to %name%'s neighbours Last.fm radio"
-msgstr "Poslouchat rádio Last.fm sousedů %name%"
-
-msgctxt "#15277"
-msgid "Listen to %name%'s personal Last.fm radio"
-msgstr "Poslouchat osobní rádio %name% Last.fm"
-
-msgctxt "#15278"
-msgid "Listen to %name%'s mix Last.fm radio"
-msgstr "Poslouchat mix od %name% na Last.fm radiu"
-
-msgctxt "#15279"
-msgid "Retrieving list from Last.fm..."
-msgstr "Získávám seznam z Last.fm..."
-
-msgctxt "#15280"
-msgid "Can't retrieve list from Last.fm..."
-msgstr "Nelze získat seznam z Last.fm..."
-
-msgctxt "#15281"
-msgid "Enter an artist name to find related ones"
-msgstr "Zadejte jméno umělce pro vyhledání podobných"
-
-msgctxt "#15282"
-msgid "Enter a tag name to find similar ones"
-msgstr "Zadejte značku pro vyhledání podobných"
-
-msgctxt "#15283"
-msgid "Tracks recently listened by %name%"
-msgstr "Nedávno poslouchané skladby %name%"
-
-msgctxt "#15284"
-msgid "Listen to %name%'s recommendations Last.fm radio"
-msgstr "Poslouchám Last.fm rádio doporučené %name%"
-
-msgctxt "#15285"
-msgid "Top tags for user %name%"
-msgstr "Nejoblíbenější značky uživatele %name%"
-
-msgctxt "#15287"
-msgid "Do you want to add the current track to your loved tracks?"
-msgstr "Přejete si přidat aktuální skladbu k Vašim oblíbeným?"
-
-msgctxt "#15288"
-msgid "Do you want to ban the current track?"
-msgstr "Přejete si zablokovat aktuální skladbu?"
-
-msgctxt "#15289"
-msgid "Added to your loved tracks: '%s'."
-msgstr "Přidána do oblíbených: '%s'."
-
-msgctxt "#15290"
-msgid "Could not add '%s' to your loved tracks."
-msgstr "Nelze přidat '%s' do oblíbených."
-
-msgctxt "#15291"
-msgid "Banned: '%s'."
-msgstr "Zablokováno: '%s'."
-
-msgctxt "#15292"
-msgid "Could not ban '%s'."
-msgstr "Nelze zablokovat skladbu '%s'."
-
-msgctxt "#15293"
-msgid "Tracks recently loved by %name%"
-msgstr "Poslední oblíbené skladby uživatele %name%"
-
-msgctxt "#15294"
-msgid "Tracks recently banned by %name%"
-msgstr "Nedávno zakázané skladby %name%"
-
-msgctxt "#15295"
-msgid "Remove from loved tracks"
-msgstr "Odstranit z oblíbených skladeb"
-
-msgctxt "#15296"
-msgid "Un-ban"
-msgstr "Odblokovat"
-
-msgctxt "#15297"
-msgid "Do you want to remove this track from your loved tracks?"
-msgstr "Přejete si odebrat tuto skladbu z Vašich oblíbených?"
-
-msgctxt "#15298"
-msgid "Do you want to un-ban this track?"
-msgstr "Přejete si odblokovat tuto skladbu?"
 
 msgctxt "#15300"
 msgid "Path not found or invalid"
@@ -5641,10 +5456,6 @@ msgstr "Režim \"párty\" přerušen."
 msgctxt "#16031"
 msgid "No matching songs in the library."
 msgstr "Žádné odpovídající skladby v knihovně nenalezeny."
-
-msgctxt "#16032"
-msgid "Could not initialize database."
-msgstr "Nelze inicializovat databázi."
 
 msgctxt "#16033"
 msgid "Could not open database."
@@ -5794,10 +5605,6 @@ msgctxt "#16314"
 msgid "Inverse Telecine"
 msgstr "Inverzní Telecine"
 
-msgctxt "#16315"
-msgid "Lanczos3 optimized"
-msgstr "Optimalizovaný lanczos3"
-
 msgctxt "#16316"
 msgid "Auto"
 msgstr "Automatická"
@@ -5826,17 +5633,9 @@ msgctxt "#16322"
 msgid "Spline36"
 msgstr "Spline36"
 
-msgctxt "#16323"
-msgid "Spline36 optimized"
-msgstr "Optimalizovaná Spline36"
-
 msgctxt "#16324"
 msgid "Software Blend"
 msgstr "Softwarové míšení"
-
-msgctxt "#16325"
-msgid "Auto - ION Optimized"
-msgstr "Auto - optimalizace pro platformu ION"
 
 msgctxt "#16400"
 msgid "Post-processing"
@@ -5930,10 +5729,6 @@ msgctxt "#19017"
 msgid "TV recordings"
 msgstr "Nahrané pořady"
 
-msgctxt "#19018"
-msgid "Default folder for PVR thumbnails"
-msgstr "Výchozí složka pro náhledy PVR"
-
 msgctxt "#19019"
 msgid "Channels"
 msgstr "Kanály"
@@ -5999,8 +5794,8 @@ msgid "Already started recording on this channel"
 msgstr "Na tomto kanále již probíhá nahrávání"
 
 msgctxt "#19035"
-msgid "This channel cannot be played. Check the log for details."
-msgstr "Kanál nelze přehrát. Zkontrolujte záznam pro více informací."
+msgid "%s could not be played. Check the log for details."
+msgstr "%s nemohl být přehrán. Detaily najdete v log souboru."
 
 msgctxt "#19036"
 msgid "This recording cannot be played. Check the log for details."
@@ -6294,10 +6089,6 @@ msgctxt "#19118"
 msgid "Cannot use PVR functions while searching."
 msgstr "V průběhu prohledávání nelze používat  PVR."
 
-msgctxt "#19119"
-msgid "On which server you want to search?"
-msgstr "Na jakém serveru si přejete vyhledávat?"
-
 msgctxt "#19120"
 msgid "Client number"
 msgstr "Počet klientů"
@@ -6490,10 +6281,6 @@ msgctxt "#19170"
 msgid "Timeout when starting playback"
 msgstr "Časový limit pri zahájení přehrávání"
 
-msgctxt "#19171"
-msgid "Start playback minimized"
-msgstr "Zahájit nahrávání na pozadí"
-
 msgctxt "#19172"
 msgid "Instant recording duration"
 msgstr "Výchozí délka nahrávání (instantní nahrávání)"
@@ -6561,10 +6348,6 @@ msgstr "EPG se obnovuje"
 msgctxt "#19189"
 msgid "Continue last channel on startup"
 msgstr "Po spuštění přejít na posledně naladěný kanál"
-
-msgctxt "#19190"
-msgid "Minimized"
-msgstr "Minimalizované"
 
 msgctxt "#19191"
 msgid "PVR service"
@@ -6686,17 +6469,9 @@ msgctxt "#19220"
 msgid "Channels in"
 msgstr "Kanály v"
 
-msgctxt "#19221"
-msgid "Synchronise channel groups with backends"
-msgstr "Synchronizovat skupiny kanálů s podpůrnými vrstvami"
-
 msgctxt "#19222"
 msgid "EPG"
 msgstr "EPG"
-
-msgctxt "#19223"
-msgid "No PVR add-on could be enabled. Check your settings or the log for more info."
-msgstr "Nelze povolit žádný doplněk PVR. Zkontrolujte svá nastavení, nebo záznam pro více informací."
 
 msgctxt "#19224"
 msgid "Recording aborted"
@@ -6722,10 +6497,6 @@ msgctxt "#19229"
 msgid "Close channel OSD after switching channels"
 msgstr "Zavřít OSD po přepnutí kanálu"
 
-msgctxt "#19230"
-msgid "Prevent EPG updates while playing a TV stream"
-msgstr "Neaktualizovat EPG během sledování TV"
-
 msgctxt "#19231"
 msgid "Always use the channel order from the backend(s)"
 msgstr "Pořadí stanic vždy převzít od podpůrné vrstvy"
@@ -6737,10 +6508,6 @@ msgstr "Vymazat výsledky hledání"
 msgctxt "#19233"
 msgid "Display a notification on timer updates"
 msgstr "Zobrazit oznámení při změnách časovačů"
-
-msgctxt "#19234"
-msgid "Use backend channels numbers (only works with 1 enabled PVR addon)"
-msgstr "Převzít čísla kanálů z podpůrné vstvy (lze pouze pokud používáte jeden doplněk PVR)"
 
 msgctxt "#19235"
 msgid "PVR manager is starting up"
@@ -6762,17 +6529,9 @@ msgctxt "#19239"
 msgid "Starting background threads"
 msgstr "Spouštění procesů na pozadí"
 
-msgctxt "#19240"
-msgid "No PVR add-on enabled"
-msgstr "Není povolen žádný doplněk PVR"
-
 msgctxt "#19241"
 msgid "The PVR manager has been enabled without any"
 msgstr "Správce PVR byl povolen, aniž by bylo povolen některé"
-
-msgctxt "#19242"
-msgid "enabled PVR add-on. Enable at least one add-on"
-msgstr "doplněk PVR. Aktivujte alespoň jeden doplněk (frontend)"
 
 msgctxt "#19243"
 msgid "in order to use the PVR functionality."
@@ -6886,17 +6645,9 @@ msgctxt "#19270"
 msgid "* All recordings"
 msgstr "* Všechny nahrávky"
 
-msgctxt "#19271"
-msgid "No PVR add-ons could be found"
-msgstr "Nebyl nalezen žádný doplněk PVR"
-
 msgctxt "#19272"
 msgid "You need a tuner, backend software, and an"
 msgstr "Pro používání PVR potřebujete TV kartu, podpůrný software a"
-
-msgctxt "#19273"
-msgid "add-on for the backend to be able to use PVR."
-msgstr "doplněk pro podpůrnou vrstvu."
 
 msgctxt "#19274"
 msgid "Please visit xbmc.org/pvr to learn more."
@@ -7214,10 +6965,6 @@ msgctxt "#19647"
 msgid "Motoring"
 msgstr "Motorismus"
 
-msgctxt "#19648"
-msgid "Fitness &amp; Health"
-msgstr "Fitness a zdraví"
-
 msgctxt "#19649"
 msgid "Cooking"
 msgstr "Vaření"
@@ -7237,10 +6984,6 @@ msgstr "Zvláštní charakteristiky"
 msgctxt "#19661"
 msgid "Original Language"
 msgstr "Původní jazyk"
-
-msgctxt "#19662"
-msgid "Black &amp; White"
-msgstr "Černobílý"
 
 msgctxt "#19663"
 msgid "Unpublished"
@@ -7566,14 +7309,6 @@ msgctxt "#20085"
 msgid "Show system info"
 msgstr "Zobrazovat informace o systému"
 
-msgctxt "#20086"
-msgid "Show available disc space C: E: F:"
-msgstr "Zobrazovat volné místo na discích C: E: F:"
-
-msgctxt "#20087"
-msgid "Show available disc space E: F: G:"
-msgstr "Zobrazovat volné místo na discích E: F: G:"
-
 msgctxt "#20088"
 msgid "Weather info"
 msgstr "Informace o počasí"
@@ -7659,8 +7394,8 @@ msgid "Root"
 msgstr "Kořen"
 
 msgctxt "#20109"
-msgid "- Zoom"
-msgstr "- Přiblížení"
+msgid "Zoom"
+msgstr "Přiblížení"
 
 msgctxt "#20110"
 msgid "UPnP settings"
@@ -8118,17 +7853,9 @@ msgctxt "#20309"
 msgid "Make new folder"
 msgstr "Vytvořit novou složku"
 
-msgctxt "#20310"
-msgid "Dim LCD on playback"
-msgstr "Ztmavit LCD při přehrávání"
-
 msgctxt "#20311"
 msgid "Unknown or onboard (protected)"
 msgstr "Neznámé nebo integrované (chráněné)"
-
-msgctxt "#20312"
-msgid "Dim LCD on paused"
-msgstr "Ztmavit LCD při pozastavení"
 
 msgctxt "#20314"
 msgid "Videos - Library"
@@ -8169,10 +7896,6 @@ msgstr "Vynulování kalibrace"
 msgctxt "#20326"
 msgid "This will reset the calibration values for %s"
 msgstr "Smažete veškeré uložené hodnoty kalibrace pro %s"
-
-msgctxt "#20327"
-msgid "to it's default values."
-msgstr "na výchozí hodnoty."
 
 msgctxt "#20328"
 msgid "Browse for destination"
@@ -8390,10 +8113,6 @@ msgctxt "#20381"
 msgid "Specials"
 msgstr "Speciální epizody"
 
-msgctxt "#20382"
-msgid "Automatically grab season thumbs"
-msgstr "Automaticky stahovat náhledy řad seriálů"
-
 msgctxt "#20383"
 msgid "Selected folder contains a single video"
 msgstr "Vybraná složka obsahuje jediné video"
@@ -8478,6 +8197,10 @@ msgctxt "#20403"
 msgid "Set actor thumb"
 msgstr "Změnit ikonu herce"
 
+msgctxt "#20404"
+msgid "Remove bookmark"
+msgstr "Odstranit záložku"
+
 msgctxt "#20405"
 msgid "Remove episode bookmark"
 msgstr "Odstranit záložku epizody"
@@ -8506,17 +8229,9 @@ msgctxt "#20411"
 msgid "Flatten"
 msgstr "Jednoduchý mód"
 
-msgctxt "#20412"
-msgid "Flatten TV shows"
-msgstr "Zobrazit TV seriály zjednodušeně"
-
 msgctxt "#20413"
 msgid "Get fanart"
 msgstr "Získat fanart"
-
-msgctxt "#20414"
-msgid "Show Fanart in video and music libraries"
-msgstr "Zobrazit fanart v knihovně videí a hudby"
 
 msgctxt "#20415"
 msgid "Scanning for new content"
@@ -8529,6 +8244,10 @@ msgstr "Premiéra"
 msgctxt "#20417"
 msgid "Writer"
 msgstr "Autor"
+
+msgctxt "#20418"
+msgid "Writers"
+msgstr "Autoři"
 
 msgctxt "#20419"
 msgid "Replace file names with library titles"
@@ -8706,6 +8425,26 @@ msgctxt "#20464"
 msgid "Select %s"
 msgstr "Vybrat %s"
 
+msgctxt "#20465"
+msgid "Manage movie set"
+msgstr "Spravovat kolekci"
+
+msgctxt "#20466"
+msgid "Select movie set"
+msgstr "Zvolit kolekci"
+
+msgctxt "#20467"
+msgid "No set (Remove from %s)"
+msgstr "Žádná kolekce (odstranit z %s)"
+
+msgctxt "#20468"
+msgid "Add movie to a new set"
+msgstr "Přidat film do nové kolekce"
+
+msgctxt "#20469"
+msgid "Keep current set (%s)"
+msgstr "Zachovat aktuální kolekci (%s)"
+
 msgctxt "#21330"
 msgid "Show hidden files and directories"
 msgstr "Zobrazovat skryté soubory a adresáře"
@@ -8746,6 +8485,18 @@ msgctxt "#21360"
 msgid "Share video and music libraries through UPnP"
 msgstr "Sdílet knihovny filmů a hudby přes UPnP"
 
+msgctxt "#21361"
+msgid "Look for remote UPnP players"
+msgstr "Vyhledat vzdálené UPnP přehrávače"
+
+msgctxt "#21362"
+msgid "Bookmark created"
+msgstr "Záložka vytvořena"
+
+msgctxt "#21363"
+msgid "Episode Bookmark created"
+msgstr "Byla vytvořena záložka epizody"
+
 msgctxt "#21364"
 msgid "Edit media share"
 msgstr "Upravit sdílení"
@@ -8754,10 +8505,6 @@ msgctxt "#21365"
 msgid "Remove media share"
 msgstr "Odebrat sdílení"
 
-msgctxt "#21366"
-msgid "Subtitle folder"
-msgstr "Složka titulků"
-
 msgctxt "#21367"
 msgid "Movie & alternate subtitle directory"
 msgstr "Video a alternativní adresář s titulky"
@@ -8765,10 +8512,6 @@ msgstr "Video a alternativní adresář s titulky"
 msgctxt "#21368"
 msgid "Override ASS/SSA subtitles fonts"
 msgstr "Přepsat písmo v ASS/SSA titulcích"
-
-msgctxt "#21369"
-msgid "Enable mouse and Touch Screen support"
-msgstr "Povolit podporu kurzoru myši a dotykové obrazovky"
 
 msgctxt "#21370"
 msgid "Play navigation sounds during media playback"
@@ -8955,8 +8698,8 @@ msgid "Default music video scraper"
 msgstr "Výchozí stahovač pro hudební videoklipy"
 
 msgctxt "#21417"
-msgid "- Settings"
-msgstr "- Nastavení"
+msgid "Settings"
+msgstr "Nastavení"
 
 msgctxt "#21418"
 msgid "Multilingual"
@@ -9087,7 +8830,7 @@ msgid "Remote control sends keyboard presses"
 msgstr "Dálkový ovladač zasílá stisky klávesnice"
 
 msgctxt "#21450"
-msgid "- Edit"
+msgid "Edit"
 msgstr "- Upravit"
 
 msgctxt "#21451"
@@ -9118,9 +8861,13 @@ msgctxt "#21457"
 msgid "Watched episode count"
 msgstr "Počet shlédnutých epizod."
 
-msgctxt "#21460"
-msgid "Subtitle location"
-msgstr "Umístění titulků"
+msgctxt "#21458"
+msgid "Group by"
+msgstr "Seskupit podle"
+
+msgctxt "#21459"
+msgid "mixed"
+msgstr "smíšené"
 
 msgctxt "#21461"
 msgid "Fixed"
@@ -9286,6 +9033,18 @@ msgctxt "#21843"
 msgid "Orientation"
 msgstr "Orientace"
 
+msgctxt "#21857"
+msgid "Sub-location"
+msgstr "Dílčí umístění"
+
+msgctxt "#21858"
+msgid "Image type"
+msgstr "Typ obrázku"
+
+msgctxt "#21859"
+msgid "Time created"
+msgstr "Čas vytvoření"
+
 msgctxt "#21860"
 msgid "Supplemental categories"
 msgstr "Doplňkové kategorie"
@@ -9359,8 +9118,8 @@ msgid "Date created"
 msgstr "Vytvořeno dne"
 
 msgctxt "#21878"
-msgid "Copyright flag"
-msgstr "Copyright"
+msgid "Urgency"
+msgstr "Naléhavost"
 
 msgctxt "#21879"
 msgid "Country code"
@@ -9459,8 +9218,8 @@ msgid "Hide progress of library updates"
 msgstr "Skrýt postup aktualizací knihovny"
 
 msgctxt "#22002"
-msgid "- DNS suffix"
-msgstr "- Přípona DNS"
+msgid "DNS suffix"
+msgstr "DNS přípona"
 
 msgctxt "#22003"
 msgid "%2.3fs"
@@ -9534,10 +9293,6 @@ msgctxt "#22020"
 msgid "Guide"
 msgstr "Návod"
 
-msgctxt "#22021"
-msgid "Allowed error in aspect ratio to minimize black bars"
-msgstr "Povolená odchylka poměru stran k minimalizaci černých okrajů"
-
 msgctxt "#22022"
 msgid "Show video files in listings"
 msgstr "Zobrazovat videa v seznamu souborů"
@@ -9555,16 +9310,16 @@ msgid "Font"
 msgstr "Písmo"
 
 msgctxt "#22031"
-msgid "- Size"
-msgstr "- Velikost"
+msgid "Size"
+msgstr "Velikost"
 
 msgctxt "#22032"
-msgid "- Colours"
-msgstr "- Barva"
+msgid "Colours"
+msgstr "Barvy"
 
 msgctxt "#22033"
-msgid "- Charset"
-msgstr "- Znaková sada"
+msgid "Charset"
+msgstr "Znaková sada"
 
 msgctxt "#22034"
 msgid "Export karaoke titles as HTML"
@@ -9698,10 +9453,6 @@ msgctxt "#24009"
 msgid "Script"
 msgstr "Skript"
 
-msgctxt "#24010"
-msgid "Visualization"
-msgstr "Vizualizace"
-
 msgctxt "#24011"
 msgid "Add-on repository"
 msgstr "Zdroj doplňků"
@@ -9751,6 +9502,10 @@ msgid "Enable"
 msgstr "Povolit"
 
 msgctxt "#24023"
+msgid "Disabled"
+msgstr "Zakázáno"
+
+msgctxt "#24024"
 msgid "Add-on disabled"
 msgstr "Doplněk je zakázán"
 
@@ -9822,21 +9577,9 @@ msgctxt "#24043"
 msgid "Available Updates"
 msgstr "Dostupné aktualizace"
 
-msgctxt "#24044"
-msgid "Dependencies not met"
-msgstr "Nesplněné závislosti"
-
 msgctxt "#24045"
 msgid "Add-on does not have the correct structure"
 msgstr "Doplněk nemá správnou strukturu"
-
-msgctxt "#24046"
-msgid "%s is used by the following installed add-on(s)"
-msgstr "%s je používán těmito nainstalovanými doplňky"
-
-msgctxt "#24047"
-msgid "This add-on cannot be uninstalled"
-msgstr "Tento doplněk nelze odinstalovat"
 
 msgctxt "#24048"
 msgid "Rollback"
@@ -9954,10 +9697,6 @@ msgctxt "#24095"
 msgid "(blacklisted)"
 msgstr "(na černé listině)"
 
-msgctxt "#24096"
-msgid "Add-on has been marked as broken in repository."
-msgstr "Doplněk byl ve zdroji označen jako nefunkční."
-
 msgctxt "#24097"
 msgid "Would you like to disable it on your system?"
 msgstr "Přejete si jej zakázat na Vašem systému?"
@@ -9986,6 +9725,10 @@ msgctxt "#24103"
 msgid "Skin is missing some files"
 msgstr "Ve vzhledu chybí některé soubory"
 
+msgctxt "#24121"
+msgid "Enter search string"
+msgstr "Zadejte řetězec k vyhledání"
+
 msgctxt "#25000"
 msgid "Notifications"
 msgstr "Oznamování"
@@ -9997,10 +9740,6 @@ msgstr "Skrýt cizí"
 msgctxt "#25002"
 msgid "Select from all titles ..."
 msgstr "Vybrat ze všech názvů..."
-
-msgctxt "#25003"
-msgid "Show bluray menus"
-msgstr "Zobrazit menu bluray"
 
 msgctxt "#25004"
 msgid "Play main title: %d"
@@ -10089,10 +9828,6 @@ msgstr "Před přehráváním videa se zeptat na jeho stažení"
 msgctxt "#33016"
 msgid "Clips"
 msgstr "Klipy"
-
-msgctxt "#33017"
-msgid "Restart plugin to enable"
-msgstr "Pro aktivaci restartujte rozšíření"
 
 msgctxt "#33018"
 msgid "Tonight"
@@ -10314,6 +10049,10 @@ msgctxt "#33083"
 msgid "Enable custom script button"
 msgstr "Povolit tlačítko vlastního skriptu"
 
+msgctxt "#33084"
+msgid "Auto login"
+msgstr "Automatické přihlášení"
+
 msgctxt "#33100"
 msgid "Failed to start"
 msgstr "Spuštění selhalo"
@@ -10359,8 +10098,8 @@ msgid "Flac"
 msgstr "Flac"
 
 msgctxt "#34100"
-msgid "Speaker Configuration"
-msgstr "Nastavení reproduktorů"
+msgid "Number of channels"
+msgstr "Počet kanálů"
 
 msgctxt "#34101"
 msgid "2.0"
@@ -10427,12 +10166,24 @@ msgid "Can't find a previous item to play"
 msgstr "Nelze nalézt předchozí položku pro přehrání7"
 
 msgctxt "#34300"
-msgid "Failed to start zeroconf"
-msgstr "Spouštění zeroconf selhalo"
+msgid "Failed to start Zeroconf"
+msgstr "Spuštění Zeroconf selhalo"
 
 msgctxt "#34301"
 msgid "Is Apple's Bonjour Service installed? See log for more info."
 msgstr "Je nainstalována služba Apple Bonjour? Pro více informací konzultujte soubor se záznamem."
+
+msgctxt "#34302"
+msgid "AirPlay requires Zeroconf to be enabled."
+msgstr "AirPlay vyžaduje spuštěný Zeroconf."
+
+msgctxt "#34303"
+msgid "Unable to stop Zeroconf"
+msgstr "Nepodařilo se ukončit Zeroconf"
+
+msgctxt "#34304"
+msgid "AirPlay and AirTunes depend on Zeroconf running."
+msgstr "AirPlay a AirTunes vyžadují spuštěný Zeroconf."
 
 msgctxt "#34400"
 msgid "Video Rendering"
@@ -10441,10 +10192,6 @@ msgstr "Vykreslení videa"
 msgctxt "#34401"
 msgid "Failed to init video filters/scalers, falling back to bilinear scaling"
 msgstr "Selhala inicializace filtrů/škálování videa, používám bilineární škálování"
-
-msgctxt "#34402"
-msgid "Failed to initialize audio device"
-msgstr "Selhala inicializace zvukového zařízení"
 
 msgctxt "#34403"
 msgid "Check your audiosettings"
@@ -10477,10 +10224,6 @@ msgstr "Periférie"
 msgctxt "#35001"
 msgid "Generic HID device"
 msgstr "Obecné HID zařízení"
-
-msgctxt "#35002"
-msgid "Generic network adapter"
-msgstr "Obecný síťový adaptér"
 
 msgctxt "#35003"
 msgid "Generic disk"
@@ -10515,8 +10258,8 @@ msgid "Enable joystick and gamepad support"
 msgstr "Povolit ovládání joystickem a gamepadem"
 
 msgctxt "#35102"
-msgid "Disable joystick when device is present"
-msgstr "Zakázat joystick, pokud je zařízení dostupné"
+msgid "Disable joystick when this device is present"
+msgstr "Pokud je toto zařízení přítomno, deaktivujte joystick"
 
 msgctxt "#35500"
 msgid "Location"
@@ -10538,10 +10281,6 @@ msgctxt "#35504"
 msgid "Product ID"
 msgstr "ID produktu"
 
-msgctxt "#36000"
-msgid "Pulse-Eight CEC adapter"
-msgstr "Pulse-Eight CEC adaptér"
-
 msgctxt "#36001"
 msgid "Pulse-Eight Nyxboard"
 msgstr "Pulse-Eight Nyxboard"
@@ -10562,10 +10301,6 @@ msgctxt "#36005"
 msgid "Enable switch side commands"
 msgstr "Povolit příkazy přepnutí stran"
 
-msgctxt "#36006"
-msgid "Could not open the adapter"
-msgstr "Nelze otevřít adaptér"
-
 msgctxt "#36007"
 msgid "Devices to power on when starting XBMC"
 msgstr "Zařízení k zapnutí při spouštění XBMC"
@@ -10578,13 +10313,13 @@ msgctxt "#36009"
 msgid "Put devices in standby mode when activating screensaver"
 msgstr "Uvést zařízení do pohotovostního režimu při aktivování spořiče obrazovky"
 
+msgctxt "#36010"
+msgid "Wake devices when deactivating screensaver"
+msgstr "Probudit zařízení při deaktivaci spořiče obrazovky"
+
 msgctxt "#36011"
 msgid "Could not detect the CEC com port. Set it up manually."
 msgstr "Nepodařilo se najít komunikační port CEC. Nastavte jej ručně."
-
-msgctxt "#36012"
-msgid "Could not initialise the CEC adapter. Please check your settings."
-msgstr "Nepodařilo se najít adaptér CEC."
 
 msgctxt "#36015"
 msgid "HDMI port number"
@@ -10593,10 +10328,6 @@ msgstr "Číslo HDMI portu"
 msgctxt "#36016"
 msgid "Connected"
 msgstr "Připojeno"
-
-msgctxt "#36017"
-msgid "Could not initialise the CEC adapter: libCEC was not found on your system."
-msgstr "Nelze inicializovat adaptér CEC: libCEC nebyla nalezena na Vašem systému."
 
 msgctxt "#36018"
 msgid "Use the TV's language setting"
@@ -10650,14 +10381,6 @@ msgctxt "#36030"
 msgid "Connection lost"
 msgstr "Spojení ztraceno"
 
-msgctxt "#36031"
-msgid "This user does not have permissions to open the CEC adapter"
-msgstr "Uživatel nemá práva k otevření adaptéru CEC"
-
-msgctxt "#36032"
-msgid "The port is busy. Only one program can access the CEC adapter"
-msgstr "Port je již používán. Pouze jeden program může přistupovat k adaptéru CEC"
-
 msgctxt "#36033"
 msgid "Pause playback when switching to another source"
 msgstr "Pozastavit přehrávání při přepnutí na jiný zdroj videa"
@@ -10689,3 +10412,271 @@ msgstr "Nepodporovaná verze rozhraní libCEC. %x je nižší než verze podporo
 msgctxt "#36041"
 msgid "* Item folder"
 msgstr "* složka položky"
+
+msgctxt "#36104"
+msgid "Change specific skin settings. The available options are dependent on the skin used."
+msgstr "Změnit specifická nastavení motivu. Rozsah voleb závisí na použitém motivu."
+
+msgctxt "#36105"
+msgid "Change the theme associated with your selected skin."
+msgstr "Změnit téma, přidružené ke zvolenému motivu."
+
+msgctxt "#36106"
+msgid "Change the colours of your selected skin."
+msgstr "Změnit barvy zvoleného motivu."
+
+msgctxt "#36109"
+msgid "Select the media window that XBMC displays on startup."
+msgstr "Zvolte okno medií, které bude zobrazeno při startu XBMC."
+
+msgctxt "#36111"
+msgid "Turn this off to remove the scrolling RSS news ticker."
+msgstr "Vypnutím odstraníte posuvné novinky z RSS kanálu."
+
+msgctxt "#36112"
+msgid "Edit the RSS feeds."
+msgstr "Upravte kanály RSS."
+
+msgctxt "#36115"
+msgid "Select the formats for temperature, time and date. The available options depend on the selected language."
+msgstr "Zvolte formát teploty, času a data. Nabízené volby jsou závislé na vybraném jazyce."
+
+msgctxt "#36117"
+msgid "Select country location."
+msgstr "Zvolte umístění země."
+
+msgctxt "#36118"
+msgid "Select your current timezone."
+msgstr "Vyberte svoje aktuální časové pásmo."
+
+msgctxt "#36119"
+msgid "Select the default audio track when different language tracks are available."
+msgstr "Pokud je k dispozici více jazyků, zvolte výchozí jazyk zvukové stopy."
+
+msgctxt "#36120"
+msgid "Select the default subtitles when different languages are available."
+msgstr "Pokud je k dispozici více jazyků, zvolte výchozí jazyk titulků."
+
+msgctxt "#36122"
+msgid "Display the (..) item in lists for visiting the parent folder."
+msgstr "Pro přechod do nadřazené složky v seznamech zobrazit (..)"
+
+msgctxt "#36123"
+msgid "Show file extensions on media files. For example, 'You Enjoy Myself.mp3' would be simply be shown as 'You Enjoy Myself'."
+msgstr "Zobrazit přípony mediálních souborů. Například \"You Enjoy Myself.mp3\" bude jednoduše zobrazeno jako \"You Enjoy Myself\"."
+
+msgctxt "#36125"
+msgid "Allow files to be deleted and renamed through the user interface, via the contextual menu (press C on a keyboard, for example, to bring up this menu)."
+msgstr "Umožní mazání a přejmenovávání souborů přímo z kontextové nabídky uživatelského rozhraní (nabídku vyvoláte například stiskem C na klávesnici)"
+
+msgctxt "#36129"
+msgid "Set the amount of idle time required before displaying the screensaver."
+msgstr "Nastavte čas, po kterém se v případě neaktivity zobrazí šetřič obrazu."
+
+msgctxt "#36131"
+msgid "Change specific screensaver settings. The available options are dependent on the screensaver used."
+msgstr "Změnit specifická nastavení spořiče obrazu. Nabízené volby jsou závislé na použitém šetřiči obrazu."
+
+msgctxt "#36132"
+msgid "Preview the selected screensaver."
+msgstr "Náhled zvoleného šetřiče obrazu."
+
+msgctxt "#36134"
+msgid "Dim the display when media is paused. Not valid for the 'Dim' screensaver mode."
+msgstr "Ztlumit obrazovku při pauze v průběhu přehrávání. Pro \"ztlumený\" mód šetřiče obrazu není tato volba k dispozici."
+
+msgctxt "#36135"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36136"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36137"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36141"
+msgid "Show plot information for unwatched media in the Video Library."
+msgstr "U nezhlédnutých souborů v knihovně medií zobrazit děj."
+
+msgctxt "#36143"
+msgid "Get thumbnails for actors when scanning media."
+msgstr "Při kontrole mediálních souborů získat náhledy herců."
+
+msgctxt "#36144"
+msgid "Remove the TV show season node, toggles between 'If only one season' (default), 'Always' and 'Never'."
+msgstr "Odstraní zobrazování sezón, přepíná mezi \"Pokud existuje jen jedna sezóna\", \"Vždy\" a \"Nikdy\"."
+
+msgctxt "#36145"
+msgid "Group movies into 'Movie sets' when browsing the movie library."
+msgstr "Při proházení knihovny seskupit filmy do \"Filmových sad\"."
+
+msgctxt "#36146"
+msgid "Check for new media files on XBMC startup."
+msgstr "Při startu XBMC vyhledat nové mediální soubory."
+
+msgctxt "#36147"
+msgid "Hide the library scanning progress bar during scans."
+msgstr "Během vyhledávání v knihovně skrýt ukazatel vyhledávacího procesu."
+
+msgctxt "#36148"
+msgid "Remove items from your library that can't be found (either renamed, deleted, or on removable storage that is currently unplugged)."
+msgstr "Odstranit z knihovny soubory, které nejsou dostupné (přejmenované, smazané nebo na vypojených výměnných mediích)"
+
+msgctxt "#36149"
+msgid "Export the Video Library database to XML files. This will optionally overwrite your current XML files."
+msgstr "Exportovat knihovnu do XML souborů. Tato volba by mohla přepsat vaše aktuální XML soubory."
+
+msgctxt "#36150"
+msgid "Import a XML file into the Video Library database."
+msgstr "Importovat XML soubor do databáze videí."
+
+msgctxt "#36153"
+msgid "Adjust the method used to process and display video."
+msgstr "Nastavit používanou metodu zobrazení a převodu videa."
+
+msgctxt "#36167"
+msgid "Audio has to stay in sync, this can either be done by resampling, skipping/duplicating packets, or adjusting the clock if it gets out of sync too far."
+msgstr "Zvuk musí být s videem synchronizován. Toho lze v případě špatné synchronizace dosáhnout převzorkováním, přeskakováním/duplikováním paketů nebo změnou časování."
+
+msgctxt "#36170"
+msgid "Allow video player to ignoring aspect ratio by a certain amount to fill a larger amount of the screen with video."
+msgstr "Umožňuje přehrávači videa do určité úrovně ignorovat poměr obrazu a vyplnit větší plochu obrazovky videem."
+
+msgctxt "#36171"
+msgid "Select the zoom level that 4:3 videos are shown on widescreen displays."
+msgstr "Zvolte úroveň přiblížení, pomocí které budou filmy s poměrem obrazu 4:3 zobrazovány na širokoúhlých obrazovkách."
+
+msgctxt "#36174"
+msgid "Enable Teletext when watching a live TV stream."
+msgstr "Při sledování živého vysílání povolit Teletext."
+
+msgctxt "#36175"
+msgid "Scale Teletext to 4:3 ratio."
+msgstr "Nastavit zobrazení teletextu na poměr 4:3."
+
+msgctxt "#36179"
+msgid "When a file is scanned into the library it will display the metadata title instead of the file name."
+msgstr "Pokud je soubor přidán do knihovny, místo zobrazení názvu souboru bude zobrazen název z metadat."
+
+msgctxt "#36180"
+msgid "Extract thumbnails and information, such as codecs and aspect ratio, to display in Library Mode."
+msgstr "Pro zobrazení v módu knihovny získat náhledy a doplňkové informace, jako je kodek a poměr obrazu."
+
+msgctxt "#36181"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36191"
+msgid "Set a custom directory for your subtitles. This can be a file share."
+msgstr "Nastavit uživatelský adresář umístění titulků. Může se jednat o adresář sdílený."
+
+msgctxt "#36192"
+msgid "Location of subtitles on the screen."
+msgstr "Umístění titulků na obrazovce."
+
+msgctxt "#36194"
+msgid "Autorun DVD video when inserted in drive."
+msgstr "V případě vložení DVD disku automaticky spustit přehrávání."
+
+msgctxt "#36195"
+msgid "Force a region for DVD playback."
+msgstr "Vynutit nastavení regionu pro přehrávání DVD."
+
+msgctxt "#36196"
+msgid "Attempt to skip 'unskippable' introductions before DVD menu."
+msgstr "Pokusit se přeskočit \"nepřeskočitelné\" upoutávky před DVD nabídkou."
+
+msgctxt "#36197"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36198"
+msgid "Select the default movie information source. See the Add-ons Manager for options."
+msgstr "Zvolit výchozí zdroj filmových informací. Pro další volby zkontrolujte správce doplňků."
+
+msgctxt "#36199"
+msgid "Select the default TV show information source. See the Add-ons Manager for options."
+msgstr "Zvolit výchozí zdroj seriálových informací. Pro další volby zkontrolujte správce doplňků."
+
+msgctxt "#36200"
+msgid "Default scraper used for adding music videos to your library."
+msgstr "Výchozí používaný scraper pro přidání hudebních videí do knihovny."
+
+msgctxt "#36204"
+msgid "Import channel groups from the PVR backend (if supported). Will delete user created groups if they're not found on the backend."
+msgstr "Importovat skupiny kanálů z PVR backendu (pokud je podporováno). Tato volba smaže uživatelsky definované skupiny, pokud nejsou v backendu nalezeny."
+
+msgctxt "#36206"
+msgid "Use numbering from the backend, instead of configuring them manually over XBMC."
+msgstr "Místo manuální konfigurace v XBMC použít číslování z backendu."
+
+msgctxt "#36207"
+msgid "Open the channel manager, which allows modifying the channel order, channel name, icon, etc."
+msgstr "Otevřít správce kanálů, který umožní změnu pořadí kanálů, jmen kanálů, ikon, atp."
+
+msgctxt "#36208"
+msgid "Instruct the backend to search for channels (if supported)."
+msgstr "Vyžádá prohledání kanálů v backendu (pokud je podporováno)."
+
+msgctxt "#36209"
+msgid "Delete channel/EPG database and reimport the data from the backend afterwards."
+msgstr "Smazat databázi kanálů/EPG a znovu importovat data z backendu."
+
+msgctxt "#36222"
+msgid "Do not import EPG data while playing TV to minimise CPU usage."
+msgstr "Pro minimalizaci využití procesoru neimportovat EPG data v průběhu přehrávání TV."
+
+msgctxt "#36260"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36301"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36302"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36303"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36310"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36410"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36411"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36412"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36413"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36414"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36415"
+msgid "No info available yet."
+msgstr "Žádné informace nejsou zatím k dispozici."
+
+msgctxt "#36426"
+msgid "Switch to channel"
+msgstr "Přepnout na kanál"
+
+msgctxt "#36428"
+msgid "Record"
+msgstr "Nahrávat"

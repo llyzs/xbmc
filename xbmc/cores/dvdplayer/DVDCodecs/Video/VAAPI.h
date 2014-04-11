@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -12,9 +12,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  Lesser General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -42,6 +42,7 @@ struct CDisplay
     : m_display(display)
     , m_lost(false)
     , m_deinterlace(deinterlace)
+    , m_support_4k(true)
   {}
  ~CDisplay();
 
@@ -49,10 +50,13 @@ struct CDisplay
   bool      lost()          { return m_lost; }
   void      lost(bool lost) { m_lost = lost; }
   bool      support_deinterlace() { return m_deinterlace; };
+  bool      support_4k() { return m_support_4k; };
+  void      support_4k(bool support_4k) { m_support_4k = support_4k; };
 private:
   VADisplay m_display;
   bool      m_lost;
   bool      m_deinterlace;
+  bool      m_support_4k;
 };
 
 typedef boost::shared_ptr<CDisplay> CDisplayPtr;

@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2010-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@
 #include "settings/DisplaySettings.h"
 #include "guilib/GraphicContext.h"
 #include "guilib/Texture.h"
+#include "utils/StringUtils.h"
+#include "guilib/DispResource.h"
+#include "threads/SingleLock.h"
 #include <vector>
 #undef BOOL
 
@@ -44,6 +47,7 @@
 #else
 #import "ios/XBMCController.h"
 #endif
+#import "osx/IOSScreenManager.h"
 #include "osx/DarwinUtils.h"
 #import <dlfcn.h>
 
@@ -52,6 +56,7 @@ CWinSystemIOS::CWinSystemIOS() : CWinSystemBase()
   m_eWindowSystem = WINDOW_SYSTEM_IOS;
 
   m_iVSyncErrors = 0;
+  m_bIsBackgrounded = false;
 }
 
 CWinSystemIOS::~CWinSystemIOS()
@@ -168,6 +173,16 @@ int CWinSystemIOS::GetNumScreens()
   return [[UIScreen screens] count];
 }
 
+int CWinSystemIOS::GetCurrentScreen()
+{
+  int idx = 0;
+  if ([[IOSScreenManager sharedInstance] isExternalScreen])
+  {
+    idx = 1;
+  }
+  return idx;
+}
+
 bool CWinSystemIOS::GetScreenResolution(int* w, int* h, double* fps, int screenIdx)
 {
   // Figure out the screen size. (default to main screen)
@@ -267,7 +282,7 @@ void CWinSystemIOS::FillInVideoModes()
       //mode str by doing it without appending "Full Screen".
       //this is what linux does - though it feels that there shouldn't be
       //the same resolution twice... - thats why i add a FIXME here.
-      res.strMode.Format("%dx%d @ %.2f", w, h, refreshrate);
+      res.strMode = StringUtils::Format("%dx%d @ %.2f", w, h, refreshrate);
       g_graphicsContext.ResetOverscan(res);
       CDisplaySettings::Get().AddResolutionInfo(res);
     }
@@ -304,6 +319,29 @@ bool CWinSystemIOS::EndRender()
 
   rtn = CRenderSystemGLES::EndRender();
   return rtn;
+}
+
+void CWinSystemIOS::Register(IDispResource *resource)
+{
+  CSingleLock lock(m_resourceSection);
+  m_resources.push_back(resource);
+}
+
+void CWinSystemIOS::Unregister(IDispResource* resource)
+{
+  CSingleLock lock(m_resourceSection);
+  std::vector<IDispResource*>::iterator i = find(m_resources.begin(), m_resources.end(), resource);
+  if (i != m_resources.end())
+    m_resources.erase(i);
+}
+
+void CWinSystemIOS::OnAppFocusChange(bool focus)
+{
+  CSingleLock lock(m_resourceSection);
+  m_bIsBackgrounded = !focus;
+  CLog::Log(LOGDEBUG, "CWinSystemIOS::OnAppFocusChange: %d", focus ? 1 : 0);
+  for (std::vector<IDispResource *>::iterator i = m_resources.begin(); i != m_resources.end(); i++)
+    (*i)->OnAppFocusChange(focus);
 }
 
 void CWinSystemIOS::InitDisplayLink(void)

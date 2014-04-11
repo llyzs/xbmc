@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "windowing/WindowingFactory.h"
 #include "utils/BitstreamConverter.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "utils/TimeUtils.h"
 #include "settings/Settings.h"
 
@@ -66,7 +67,7 @@ enum {
 typedef struct frame_queue {
   double              dts;
   double              pts;
-  double              sort_time;
+  int64_t             sort_time;
   FourCharCode        pixel_buffer_format;
   CVBufferRef         pixel_buffer_ref;
   struct frame_queue  *nextframe;
@@ -74,7 +75,7 @@ typedef struct frame_queue {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // helper function that wraps dts/pts into a dictionary
-static CFDictionaryRef CreateDictionaryWithDisplayTime(double time, double dts, double pts)
+static CFDictionaryRef CreateDictionaryWithDisplayTime(int64_t time, double dts, double pts)
 {
   CFStringRef key[3] = {
     CFSTR("VideoDisplay_TIME"),
@@ -83,7 +84,7 @@ static CFDictionaryRef CreateDictionaryWithDisplayTime(double time, double dts, 
   CFNumberRef value[3];
   CFDictionaryRef display_time;
 
-  value[0] = CFNumberCreate(kCFAllocatorDefault, kCFNumberDoubleType, &time);
+  value[0] = CFNumberCreate(kCFAllocatorDefault, kCFNumberLongLongType, &time);
   value[1] = CFNumberCreate(kCFAllocatorDefault, kCFNumberDoubleType, &dts);
   value[2] = CFNumberCreate(kCFAllocatorDefault, kCFNumberDoubleType, &pts);
 
@@ -103,7 +104,7 @@ static void GetFrameDisplayTimeFromDictionary(
   CFDictionaryRef inFrameInfoDictionary, frame_queue *frame)
 {
   // default to DVD_NOPTS_VALUE
-  frame->sort_time = -1.0;
+  frame->sort_time = -1;
   frame->dts = DVD_NOPTS_VALUE;
   frame->pts = DVD_NOPTS_VALUE;
   if (inFrameInfoDictionary == NULL)
@@ -113,7 +114,7 @@ static void GetFrameDisplayTimeFromDictionary(
   //
   value[0] = (CFNumberRef)CFDictionaryGetValue(inFrameInfoDictionary, CFSTR("VideoDisplay_TIME"));
   if (value[0])
-    CFNumberGetValue(value[0], kCFNumberDoubleType, &frame->sort_time);
+    CFNumberGetValue(value[0], kCFNumberLongLongType, &frame->sort_time);
   value[1] = (CFNumberRef)CFDictionaryGetValue(inFrameInfoDictionary, CFSTR("VideoDisplay_DTS"));
   if (value[1])
     CFNumberGetValue(value[1], kCFNumberDoubleType, &frame->dts);
@@ -140,7 +141,7 @@ CDVDVideoCodecVDA::CDVDVideoCodecVDA() : CDVDVideoCodec()
   memset(&m_videobuffer, 0, sizeof(DVDVideoPicture));
   m_DropPictures = false;
   m_decode_async = false;
-  m_sort_time_offset = 0.0;
+  m_sort_time = 0;
   m_use_cvBufferRef = false;
 }
 
@@ -192,7 +193,7 @@ bool CDVDVideoCodecVDA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     CFDataRef avcCData;
     switch (hints.codec)
     {
-      case CODEC_ID_H264:
+      case AV_CODEC_ID_H264:
         m_bitstream = new CBitstreamConverter;
         if (!m_bitstream->Open(hints.codec, (uint8_t*)hints.extradata, hints.extrasize, false))
           return false;
@@ -231,8 +232,6 @@ bool CDVDVideoCodecVDA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
         CFRelease(avcCData);
         return false;
       }
-      if (m_max_ref_frames == 0)
-        m_max_ref_frames = 2;
     }
 
     if (profile == FF_PROFILE_H264_MAIN && level == 32 && m_max_ref_frames > 4)
@@ -244,12 +243,13 @@ bool CDVDVideoCodecVDA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     }
 
     CStdString rendervendor = g_Windowing.GetRenderVendor();
-    rendervendor.MakeLower();
+    StringUtils::ToLower(rendervendor);
     if (rendervendor.find("nvidia") != std::string::npos)
     {
       // Nvidia gpu's are all powerful and work the way god intended
       m_decode_async = true;
-      m_use_cvBufferRef = true;
+      // The gods are liars, ignore the sirens for now.
+      m_use_cvBufferRef = false;
     }
     else if (rendervendor.find("intel") != std::string::npos)
     {
@@ -261,7 +261,8 @@ bool CDVDVideoCodecVDA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     {
       // ATI gpu's are borked when using async decode
       m_decode_async = false;
-      m_use_cvBufferRef = true;
+      // They lie here too.
+      m_use_cvBufferRef = false;
     }
 
     if (!m_use_cvBufferRef)
@@ -369,9 +370,8 @@ bool CDVDVideoCodecVDA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     }
 
     m_DropPictures = false;
-    m_max_ref_frames = std::min(m_max_ref_frames, 5);
-    m_sort_time_offset = (CurrentHostCounter() * 1000.0) / CurrentHostFrequency();
-
+    m_max_ref_frames = std::max(m_max_ref_frames + 1, 5);
+    m_sort_time = 0;
     return true;
   }
 
@@ -414,8 +414,7 @@ int CDVDVideoCodecVDA::Decode(uint8_t* pData, int iSize, double dts, double pts)
     CFDataRef avc_demux = CFDataCreate(kCFAllocatorDefault,
       m_bitstream->GetConvertBuffer(), m_bitstream->GetConvertSize());
 
-    double sort_time = (CurrentHostCounter() * 1000.0) / CurrentHostFrequency();
-    CFDictionaryRef avc_time = CreateDictionaryWithDisplayTime(sort_time - m_sort_time_offset, dts, pts);
+    CFDictionaryRef avc_time = CreateDictionaryWithDisplayTime(m_sort_time++, dts, pts);
 
     uint32_t avc_flags = 0;
     if (m_DropPictures)
@@ -441,7 +440,7 @@ int CDVDVideoCodecVDA::Decode(uint8_t* pData, int iSize, double dts, double pts)
   if (m_queue_depth < m_max_ref_frames)
     return VC_BUFFER;
 
-  return VC_PICTURE | VC_BUFFER;
+  return VC_PICTURE;
 }
 
 void CDVDVideoCodecVDA::Reset(void)
@@ -452,7 +451,7 @@ void CDVDVideoCodecVDA::Reset(void)
   while (m_queue_depth)
     DisplayQueuePop();
 
-  m_sort_time_offset = (CurrentHostCounter() * 1000.0) / CurrentHostFrequency();
+  m_sort_time = 0;
 }
 
 bool CDVDVideoCodecVDA::GetPicture(DVDVideoPicture* pDvdVideoPicture)
@@ -519,7 +518,7 @@ bool CDVDVideoCodecVDA::GetPicture(DVDVideoPicture* pDvdVideoPicture)
   //CLog::Log(LOGNOTICE, "%s - VDADecoderDecode dts(%f), pts(%f)", __FUNCTION__,
   //  pDvdVideoPicture->dts, pDvdVideoPicture->pts);
 
-  return VC_PICTURE | VC_BUFFER;
+  return true;
 }
 
 bool CDVDVideoCodecVDA::ClearPicture(DVDVideoPicture* pDvdVideoPicture)
@@ -631,45 +630,30 @@ void CDVDVideoCodecVDA::VDADecoderCallback(
   newFrame->pixel_buffer_ref = CVBufferRetain(imageBuffer);
   GetFrameDisplayTimeFromDictionary(frameInfo, newFrame);
 
-  // if both dts or pts are good we use those, else use decoder insert time for frame sort
-  if ((newFrame->pts != DVD_NOPTS_VALUE) || (newFrame->dts != DVD_NOPTS_VALUE))
-  {
-    // if pts is borked (stupid avi's), use dts for frame sort
-    if (newFrame->pts == DVD_NOPTS_VALUE)
-      newFrame->sort_time = newFrame->dts;
-    else
-      newFrame->sort_time = newFrame->pts;
-  }
-
   // since the frames we get may be in decode order rather than presentation order
   // our hypothetical callback places them in a queue of frames which will
   // hold them in display order for display on another thread
   pthread_mutex_lock(&ctx->m_queue_mutex);
-  //
-  frame_queue *queueWalker = ctx->m_display_queue;
-  if (!queueWalker || (newFrame->sort_time < queueWalker->sort_time))
+
+  frame_queue base;
+  base.nextframe = ctx->m_display_queue;
+  frame_queue *ptr = &base;
+  for(; ptr->nextframe; ptr = ptr->nextframe)
   {
-    // we have an empty queue, or this frame earlier than the current queue head.
-    newFrame->nextframe = queueWalker;
-    ctx->m_display_queue = newFrame;
-  } else {
-    // walk the queue and insert this frame where it belongs in display order.
-    bool frameInserted = false;
-    frame_queue *nextFrame = NULL;
-    //
-    while (!frameInserted)
-    {
-      nextFrame = queueWalker->nextframe;
-      if (!nextFrame || (newFrame->sort_time < nextFrame->sort_time))
-      {
-        // if the next frame is the tail of the queue, or our new frame is earlier.
-        newFrame->nextframe = nextFrame;
-        queueWalker->nextframe = newFrame;
-        frameInserted = true;
-      }
-      queueWalker = nextFrame;
-    }
+    if(ptr->nextframe->pts == DVD_NOPTS_VALUE
+    || newFrame->pts       == DVD_NOPTS_VALUE)
+      continue;
+    if(ptr->nextframe->pts > newFrame->pts)
+      break;
   }
+  /* insert after ptr */
+  newFrame->nextframe = ptr->nextframe;
+  ptr->nextframe = newFrame;
+
+  /* update anchor if needed */
+  if(newFrame->nextframe == ctx->m_display_queue)
+    ctx->m_display_queue = newFrame;
+
   ctx->m_queue_depth++;
   //
   pthread_mutex_unlock(&ctx->m_queue_mutex);	
@@ -678,7 +662,7 @@ void CDVDVideoCodecVDA::VDADecoderCallback(
 unsigned CDVDVideoCodecVDA::GetAllowedReferences()
 {
   if (m_use_cvBufferRef)
-    return 2; /* TODO can this be increased? */
+    return 3;
   else
     return 0;
 }

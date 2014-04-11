@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,13 +77,11 @@ std::string CEnvironment::win32ConvertWToUtf8(const std::wstring &text, bool *re
   if (resultSuccessful != NULL)
     *resultSuccessful = false;
 
-  static const DWORD convFlags = (CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionVista)) ?
-    /*WC_ERR_INVALID_CHARS*/ 0x80 : 0;
-  int bufSize = WideCharToMultiByte(CP_UTF8,  convFlags, text.c_str(), -1, NULL, 0, NULL, NULL);
+  int bufSize = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text.c_str(), -1, NULL, 0, NULL, NULL);
   if (bufSize == 0)
     return "";
   char * converted = new char[bufSize];
-  if (WideCharToMultiByte(CP_UTF8, convFlags, text.c_str(), -1, converted, bufSize, NULL, NULL) != bufSize)
+  if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text.c_str(), -1, converted, bufSize, NULL, NULL) != bufSize)
   {
     delete[] converted;
     return "";
@@ -153,6 +151,10 @@ int CEnvironment::win32_setenv(const std::string &name, const std::string &value
     { L"msvcr110.dll" }, // Visual Studio 2012
 #ifdef _DEBUG
     { L"msvcr110d.dll" },// Visual Studio 2012 (debug)
+#endif
+    { L"msvcr120.dll" }, // Visual Studio 2013
+#ifdef _DEBUG
+    { L"msvcr120d.dll" },// Visual Studio 2013 (debug)
 #endif
     { NULL }             // Terminating NULL for list
   };
@@ -243,7 +245,7 @@ int CEnvironment::putenv(const std::string &envstring)
 {
   if (envstring.empty())
     return 0;
-  unsigned int pos = envstring.find('=');
+  size_t pos = envstring.find('=');
   if (pos == 0) // '=' is the first character
     return -1;
   if (pos == std::string::npos)

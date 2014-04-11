@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ using namespace JSONRPC;
 JSONRPC_STATUS CFileOperations::GetRootDirectory(const CStdString &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result)
 {
   CStdString media = parameterObject["media"].asString();
-  media = media.ToLower();
+  StringUtils::ToLower(media);
 
   VECSOURCES *sources = CMediaSourceSettings::Get().GetSources(media);
   if (sources)
@@ -75,7 +75,7 @@ JSONRPC_STATUS CFileOperations::GetRootDirectory(const CStdString &method, ITran
 JSONRPC_STATUS CFileOperations::GetDirectory(const CStdString &method, ITransportLayer *transport, IClient *client, const CVariant &parameterObject, CVariant &result)
 {
   CStdString media = parameterObject["media"].asString();
-  media = media.ToLower();
+  StringUtils::ToLower(media);
 
   CFileItemList items;
   CStdString strPath = parameterObject["directory"].asString();
@@ -120,26 +120,20 @@ JSONRPC_STATUS CFileOperations::GetDirectory(const CStdString &method, ITranspor
           (media == "picture" && items[i]->HasPictureInfoTag()) ||
            media == "files" ||
            URIUtils::IsUPnP(items.GetPath()))
-      {
           filteredFiles.Add(items[i]);
-      }
       else
       {
         CFileItemPtr fileItem(new CFileItem());
         if (FillFileItem(items[i], fileItem, media, parameterObject))
-        {
             filteredFiles.Add(fileItem);
-        }
         else
-        {
             filteredFiles.Add(items[i]);
-        }
       }
     }
 
     // Check if the "properties" list exists
-    // and make sure it contains the "file"
-    // field
+    // and make sure it contains the "file" and "filetype"
+    // fields
     CVariant param = parameterObject;
     if (!param.isMember("properties"))
       param["properties"] = CVariant(CVariant::VariantTypeArray);
@@ -156,6 +150,7 @@ JSONRPC_STATUS CFileOperations::GetDirectory(const CStdString &method, ITranspor
 
     if (!hasFileField)
       param["properties"].append("file");
+    param["properties"].append("filetype");
 
     HandleFileItemList("id", true, "files", filteredFiles, param, result);
 
@@ -174,8 +169,7 @@ JSONRPC_STATUS CFileOperations::GetFileDetails(const CStdString &method, ITransp
   if (!CFileUtils::RemoteAccessAllowed(file))
     return InvalidParams;
 
-  CStdString path;
-  URIUtils::GetDirectory(file, path);
+  CStdString path = URIUtils::GetDirectory(file);
 
   CFileItemList items;
   if (path.empty() || !CDirectory::GetDirectory(path, items) || !items.Contains(file))
@@ -204,6 +198,7 @@ JSONRPC_STATUS CFileOperations::GetFileDetails(const CStdString &method, ITransp
 
   if (!hasFileField)
     param["properties"].append("file");
+  param["properties"].append("filetype");
 
   HandleFileItem("id", true, "filedetails", item, parameterObject, param["properties"], result, false);
   return OK;
@@ -290,7 +285,7 @@ bool CFileOperations::FillFileItemList(const CVariant &parameterObject, CFileIte
   if (parameterObject.isMember("directory"))
   {
     CStdString media =  parameterObject["media"].asString();
-    media = media.ToLower();
+    StringUtils::ToLower(media);
 
     CStdString strPath = parameterObject["directory"].asString();
     if (!strPath.empty())
@@ -318,7 +313,7 @@ bool CFileOperations::FillFileItemList(const CVariant &parameterObject, CFileIte
       CDirectory directory;
       if (directory.GetDirectory(strPath, items, extensions))
       {
-        items.Sort(SORT_METHOD_FILE, SortOrderAscending);
+        items.Sort(SortByFile, SortOrderAscending);
         CFileItemList filteredDirectories;
         for (unsigned int i = 0; i < (unsigned int)items.Size(); i++)
         {

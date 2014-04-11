@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,6 +48,8 @@
 #define LOGFFMPEG (1 << (LOGMASKBIT+3))
 #define LOGRTMP   (1 << (LOGMASKBIT+4))
 #define LOGDBUS   (1 << (LOGMASKBIT+5))
+#define LOGJSONRPC   (1 << (LOGMASKBIT+6))
+#define LOGAUDIO  (1 << (LOGMASKBIT+7))
 
 #ifdef __GNUC__
 #define ATTRIB_LOG_FORMAT __attribute__((format(printf,3,4)))

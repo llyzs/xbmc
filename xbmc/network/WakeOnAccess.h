@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,30 +13,29 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 
 #include "URL.h"
 #include "XBDateTime.h"
 #include "utils/Job.h"
-#include "settings/ISettingsHandler.h"
+#include "settings/lib/ISettingsHandler.h"
 
 class CWakeOnAccess : private IJobCallback, public ISettingsHandler
 {
 public:
   static CWakeOnAccess &Get();
 
-  void WakeUpHost (const CURL& fileUrl);
-  void WakeUpHost (const CStdString& hostName, const std::string& customMessage);
+  bool WakeUpHost (const CURL& fileUrl);
+  bool WakeUpHost (const CStdString& hostName, const std::string& customMessage);
 
   void QueueMACDiscoveryForAllRemotes();
 
   virtual void OnJobComplete(unsigned int jobID, bool success, CJob *job);
   virtual void OnSettingsLoaded();
-  virtual void OnSettingsSaved() const;
+  virtual void OnSettingsSaved();
 
   // struct to keep per host settings
   struct WakeUpEntry
@@ -62,7 +61,7 @@ private:
   void LoadFromXML();
   void SaveToXML();
 
-  void SetEnabled(bool enabled) { m_enabled = enabled; }
+  void SetEnabled(bool enabled);
   bool IsEnabled() const { return m_enabled; }
 
   void QueueMACDiscoveryForHost(const CStdString& host);
@@ -78,5 +77,5 @@ private:
 
   bool m_enabled;
 
-  void WakeUpHost(const WakeUpEntry& server);
+  bool WakeUpHost(const WakeUpEntry& server);
 };

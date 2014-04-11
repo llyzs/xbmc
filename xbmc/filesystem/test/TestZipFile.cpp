@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "filesystem/Directory.h"
 #include "filesystem/File.h"
+#include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "FileItem.h"
 #include "settings/Settings.h"
@@ -189,12 +190,12 @@ TEST_F(TestZipFile, CorruptedFile)
   std::cout << "File contents:" << std::endl;
   while ((size = file->Read(buf, sizeof(buf))) > 0)
   {
-    str.Format("  %08X", count);
+    str = StringUtils::Format("  %08X", count);
     std::cout << str << "  ";
     count += size;
     for (i = 0; i < size; i++)
     {
-      str.Format("%02X ", buf[i]);
+      str = StringUtils::Format("%02X ", buf[i]);
       std::cout << str;
     }
     while (i++ < sizeof(buf))

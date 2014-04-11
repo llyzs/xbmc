@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,8 +19,7 @@
  */
 
 #include "SettingPath.h"
-#include "settings/SettingsManager.h"
-#include "threads/SingleLock.h"
+#include "settings/lib/SettingsManager.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
@@ -32,11 +31,7 @@
 CSettingPath::CSettingPath(const std::string &id, CSettingsManager *settingsManager /* = NULL */)
   : CSettingString(id, settingsManager),
     m_writable(true)
-{
-  m_control.SetType(SettingControlTypeButton);
-  m_control.SetFormat(SettingControlFormatPath);
-  m_control.SetAttributes(SettingControlAttributeNone);
-}
+{ }
   
 CSettingPath::CSettingPath(const std::string &id, const CSettingPath &setting)
   : CSettingString(id, setting)
@@ -44,29 +39,22 @@ CSettingPath::CSettingPath(const std::string &id, const CSettingPath &setting)
   copy(setting);
 }
 
+CSetting* CSettingPath::Clone(const std::string &id) const
+{
+  return new CSettingPath(id, *this);
+}
+
 bool CSettingPath::Deserialize(const TiXmlNode *node, bool update /* = false */)
 {
-  CSingleLock lock(m_critical);
+  CExclusiveLock lock(m_critical);
 
   if (!CSettingString::Deserialize(node, update))
     return false;
     
-  if (m_control.GetType() != SettingControlTypeButton ||
-      m_control.GetFormat() != SettingControlFormatPath ||
-      m_control.GetAttributes() != SettingControlAttributeNone)
+  if (m_control != NULL &&
+     (m_control->GetType() != "button" || m_control->GetFormat() != "path"))
   {
     CLog::Log(LOGERROR, "CSettingPath: invalid <control> of \"%s\"", m_id.c_str());
-    return false;
-  }
-    
-  // get the default value by abusing the FromString
-  // implementation to parse the default value
-  CStdString value;
-  if (XMLUtils::GetString(node, XML_ELM_DEFAULT, value))
-    m_value = m_default = value;
-  else if (!update && !m_allowEmpty)
-  {
-    CLog::Log(LOGERROR, "CSettingPath: error reading the default value of \"%s\"", m_id.c_str());
     return false;
   }
     
@@ -110,6 +98,7 @@ void CSettingPath::copy(const CSettingPath &setting)
 {
   CSettingString::Copy(setting);
 
+  CExclusiveLock lock(m_critical);
   m_writable = setting.m_writable;
   m_sources = setting.m_sources;
 }

@@ -2,6 +2,9 @@
  *      Copyright (C) 2010 Team Boxee
  *      http://www.boxee.tv
  *
+ *      Copyright (C) 2010-2013 Team XBMC
+ *      http://xbmc.org
+ *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
@@ -17,7 +20,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "UDFFile.h"
 #include "URL.h"
 #include "Util.h"
@@ -48,7 +50,7 @@ CUDFFile::~CUDFFile()
 //*********************************************************************************************
 bool CUDFFile::Open(const CURL& url)
 {
-  if(!m_udfIsoReaderLocal.Open(url.GetHostName()))
+  if(!m_udfIsoReaderLocal.Open(url.GetHostName()) || url.GetFileName().empty())
      return false;
 
   m_hFile = m_udfIsoReaderLocal.OpenFile(url.GetFileName());
@@ -122,6 +124,12 @@ int CUDFFile::Stat(const CURL& url, struct __stat64* buffer)
 {
   if(!m_udfIsoReaderLocal.Open(url.GetHostName()))
      return -1;
+
+  if (url.GetFileName().empty())
+  {
+    buffer->st_mode = _S_IFDIR;
+    return 0;
+  }
 
   m_hFile = m_udfIsoReaderLocal.OpenFile(url.GetFileName());
   if (m_hFile != INVALID_HANDLE_VALUE)

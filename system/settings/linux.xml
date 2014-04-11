@@ -7,6 +7,20 @@
           <visible>false</visible>
         </setting>
       </group>
+      <group id="3">
+        <setting id="videoscreen.vsync">
+          <default>3</default> <!-- VSYNC_DRIVER -->
+        </setting>
+      </group>
+    </category>
+    <category id="input">
+      <group id="2">
+        <setting id="input.enablejoystick">
+          <requirement>HAS_SDL_JOYSTICK</requirement>
+          <level>0</level>
+          <default>false</default>
+        </setting>      
+      </group>
     </category>
   </section>
 </settings>

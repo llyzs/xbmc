@@ -1,8 +1,7 @@
 #pragma once
-
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +46,7 @@ enum ReplayGain
 
 namespace MUSIC_INFO
 {
-  class EmbeddedArtInfo
+  class EmbeddedArtInfo : public IArchivable
   {
   public:
     EmbeddedArtInfo() {};
@@ -56,6 +55,7 @@ namespace MUSIC_INFO
     void clear();
     bool empty() const;
     bool matches(const EmbeddedArtInfo &right) const;
+    virtual void Archive(CArchive& ar);
     size_t      size;
     std::string mime;
   };
@@ -174,7 +174,7 @@ public:
 
   virtual void Archive(CArchive& ar);
   virtual void Serialize(CVariant& ar) const;
-  virtual void ToSortable(SortItem& sortable);
+  virtual void ToSortable(SortItem& sortable, Field field) const;
 
   void Clear();
 protected:

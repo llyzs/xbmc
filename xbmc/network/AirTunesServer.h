@@ -4,7 +4,7 @@
  * the Boxee project. http://www.boxee.tv
  *
  *      Copyright (C) 2011-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,6 +65,8 @@ private:
   ~CAirTunesServer();
   bool Initialize(const CStdString &password);
   void Deinitialize();
+  static void RefreshCoverArt();
+  static void RefreshMetadata();
 
   int m_port;
 #if defined(HAVE_LIBSHAIRPLAY)
@@ -76,6 +78,9 @@ private:
 #endif
   static CAirTunesServer *ServerInstance;
   static CStdString m_macAddress;
+  static CCriticalSection m_metadataLock;
+  static std::string m_metadata[3];//0 - album, 1 - title, 2 - artist
+  static bool m_streamStarted;
 
   class AudioOutputFunctions
   {

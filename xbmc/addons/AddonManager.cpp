@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -85,8 +85,8 @@ AddonPtr CAddonMgr::Factory(const cp_extension_t *props)
       return AddonPtr(new CPluginSource(props));
     case ADDON_SCRIPT_LIBRARY:
     case ADDON_SCRIPT_LYRICS:
-    case ADDON_SCRIPT_SUBTITLES:
     case ADDON_SCRIPT_MODULE:
+    case ADDON_SUBTITLE_MODULE:
     case ADDON_WEB_INTERFACE:
       return AddonPtr(new CAddon(props));
     case ADDON_SCRIPT_WEATHER:
@@ -125,19 +125,19 @@ AddonPtr CAddonMgr::Factory(const cp_extension_t *props)
         if (type == ADDON_SCREENSAVER)
         { // Python screensaver
           CStdString library = CAddonMgr::Get().GetExtValue(props->configuration, "@library");
-          if (URIUtils::GetExtension(library).Equals(".py", false))
+          if (URIUtils::HasExtension(library, ".py"))
             return AddonPtr(new CScreenSaver(props));
         }
 #if defined(TARGET_ANDROID)                                                                                                                                                      
           if ((value = GetExtValue(props->plugin->extensions->configuration, "@library_android")) && value.empty())                                                                
             break;                                                                                                                                                                 
- #elif defined(_LINUX) && !defined(TARGET_DARWIN)
+#elif defined(TARGET_LINUX) || defined(TARGET_FREEBSD)
         if ((value = GetExtValue(props->plugin->extensions->configuration, "@library_linux")) && value.empty())
           break;
-#elif defined(_WIN32) && defined(HAS_SDL_OPENGL)
+#elif defined(TARGET_WINDOWS) && defined(HAS_SDL_OPENGL)
         if ((value = GetExtValue(props->plugin->extensions->configuration, "@library_wingl")) && value.empty())
           break;
-#elif defined(_WIN32) && defined(HAS_DX)
+#elif defined(TARGET_WINDOWS) && defined(HAS_DX)
         if ((value = GetExtValue(props->plugin->extensions->configuration, "@library_windx")) && value.empty())
           break;
 #elif defined(TARGET_DARWIN)
@@ -286,6 +286,15 @@ bool CAddonMgr::Init()
   }
 
   FindAddons();
+
+  VECADDONS repos;
+  if (GetAddons(ADDON_REPOSITORY, repos))
+  {
+    VECADDONS::iterator it = repos.begin();
+    for (;it != repos.end(); ++it)
+      CLog::Log(LOGNOTICE, "ADDONS: Using repository %s", (*it)->ID().c_str());
+  }
+
   return true;
 }
 
@@ -296,6 +305,7 @@ void CAddonMgr::DeInit()
   delete m_cpluff;
   m_cpluff = NULL;
   m_database.Close();
+  m_disabled.clear();
 }
 
 bool CAddonMgr::HasAddons(const TYPE &type, bool enabled /*= true*/)
@@ -362,13 +372,13 @@ bool CAddonMgr::ReloadSettings(const CStdString &id)
   return false;
 }
 
-bool CAddonMgr::GetAllOutdatedAddons(VECADDONS &addons, bool enabled /*= true*/)
+bool CAddonMgr::GetAllOutdatedAddons(VECADDONS &addons, bool getLocalVersion /*= false*/)
 {
   CSingleLock lock(m_critSection);
   for (int i = ADDON_UNKNOWN+1; i < ADDON_VIZ_LIBRARY; ++i)
   {
     VECADDONS temp;
-    if (CAddonMgr::Get().GetAddons((TYPE)i, temp, enabled))
+    if (CAddonMgr::Get().GetAddons((TYPE)i, temp, true))
     {
       AddonPtr repoAddon;
       for (unsigned int j = 0; j < temp.size(); j++)
@@ -387,17 +397,21 @@ bool CAddonMgr::GetAllOutdatedAddons(VECADDONS &addons, bool enabled /*= true*/)
         if (temp[j]->Version() < repoAddon->Version() &&
             !m_database.IsAddonBlacklisted(temp[j]->ID(),
                                            repoAddon->Version().c_str()))
+        {
+          if (getLocalVersion)
+            repoAddon->Props().version = temp[j]->Version();
           addons.push_back(repoAddon);
+        }
       }
     }
   }
   return !addons.empty();
 }
 
-bool CAddonMgr::HasOutdatedAddons(bool enabled /*= true*/)
+bool CAddonMgr::HasOutdatedAddons()
 {
   VECADDONS dummy;
-  return GetAllOutdatedAddons(dummy,enabled);
+  return GetAllOutdatedAddons(dummy);
 }
 
 bool CAddonMgr::GetAddons(const TYPE &type, VECADDONS &addons, bool enabled /* = true */)
@@ -411,7 +425,7 @@ bool CAddonMgr::GetAddons(const TYPE &type, VECADDONS &addons, bool enabled /* =
   for(int i=0; i <num; i++)
   {
     const cp_extension_t *props = exts[i];
-    if (m_database.IsAddonDisabled(props->plugin->identifier) != enabled)
+    if (IsAddonDisabled(props->plugin->identifier) != enabled)
     {
       // get a pointer to a running pvrclient if it's already started, or we won't be able to change settings
       if (TranslateType(props->ext_point_id) == ADDON_PVRDLL &&
@@ -448,7 +462,7 @@ bool CAddonMgr::GetAddon(const CStdString &str, AddonPtr &addon, const TYPE &typ
 
     if (addon && addon.get())
     {
-      if (enabledOnly && m_database.IsAddonDisabled(addon->ID()))
+      if (enabledOnly && IsAddonDisabled(addon->ID()))
         return false;
 
       if (addon->Type() == ADDON_PVRDLL && g_PVRManager.IsStarted())
@@ -566,6 +580,31 @@ void CAddonMgr::RemoveAddon(const CStdString& ID)
   }
 }
 
+bool CAddonMgr::DisableAddon(const std::string& ID, bool disable)
+{
+  CSingleLock lock(m_critSection);
+  if (m_database.DisableAddon(ID, disable))
+  {
+    m_disabled[ID] = disable;
+    return true;
+  }
+
+  return false;
+}
+
+bool CAddonMgr::IsAddonDisabled(const std::string& ID)
+{
+  CSingleLock lock(m_critSection);
+  std::map<std::string, bool>::const_iterator it = m_disabled.find(ID);
+  if (it != m_disabled.end())
+    return it->second;
+
+  bool ret = m_database.IsAddonDisabled(ID);
+  m_disabled.insert(pair<std::string, bool>(ID, ret));
+
+  return ret;
+}
+
 const char *CAddonMgr::GetTranslatedString(const cp_cfg_element_t *root, const char *tag)
 {
   if (!root)
@@ -578,7 +617,7 @@ const char *CAddonMgr::GetTranslatedString(const cp_cfg_element_t *root, const c
     if (strcmp(tag, child.name) == 0)
     { // see if we have a "lang" attribute
       const char *lang = m_cpluff->lookup_cfg_value((cp_cfg_element_t*)&child, "@lang");
-      if (lang && 0 == strcmp(lang,g_langInfo.GetDVDAudioLanguage().c_str()))
+      if (lang && 0 == strcmp(lang,g_langInfo.GetLanguageLocale(true).c_str()))
         return child.value;
       if (!lang || 0 == strcmp(lang, "en"))
         eng = &child;
@@ -597,8 +636,8 @@ AddonPtr CAddonMgr::AddonFromProps(AddonProps& addonProps)
     case ADDON_SCRIPT_LIBRARY:
     case ADDON_SCRIPT_LYRICS:
     case ADDON_SCRIPT_WEATHER:
-    case ADDON_SCRIPT_SUBTITLES:
     case ADDON_SCRIPT_MODULE:
+    case ADDON_SUBTITLE_MODULE:
     case ADDON_WEB_INTERFACE:
       return AddonPtr(new CAddon(addonProps));
     case ADDON_SERVICE:
@@ -651,11 +690,11 @@ bool CAddonMgr::PlatformSupportsAddon(const cp_plugin_info_t *plugin) const
         return true;
 #if defined(TARGET_ANDROID)
       if (platforms[i] == "android")
-#elif defined(_LINUX) && !defined(TARGET_DARWIN)
+#elif defined(TARGET_LINUX) || defined(TARGET_FREEBSD)
       if (platforms[i] == "linux")
-#elif defined(_WIN32) && defined(HAS_SDL_OPENGL)
+#elif defined(TARGET_WINDOWS) && defined(HAS_SDL_OPENGL)
       if (platforms[i] == "wingl")
-#elif defined(_WIN32) && defined(HAS_DX)
+#elif defined(TARGET_WINDOWS) && defined(HAS_DX)
       if (platforms[i] == "windx")
 #elif defined(TARGET_DARWIN_OSX)
 // Remove this after Frodo and add an architecture filter
@@ -723,7 +762,7 @@ bool CAddonMgr::GetExtList(cp_cfg_element_t *base, const char *path, vector<CStd
   if (!base || !path)
     return false;
   CStdString all = m_cpluff->lookup_cfg_value(base, path);
-  if (all.IsEmpty())
+  if (all.empty())
     return false;
   StringUtils::SplitString(all, " ", result);
   return true;

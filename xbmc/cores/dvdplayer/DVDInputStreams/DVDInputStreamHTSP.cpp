@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ bool CDVDInputStreamHTSP::Open(const char* file, const std::string& content)
   if(!m_session.Connect(url.GetHostName(), url.GetPort()))
     return false;
 
-  if(!url.GetUserName().IsEmpty())
+  if(!url.GetUserName().empty())
     m_session.Auth(url.GetUserName(), url.GetPassWord());
 
   m_session.SendEnableAsync();

@@ -3,7 +3,7 @@
 
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  *
  */
 
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
 #include "windowing/XBMC_events.h"
 
 #define XBMC_BUTTON(X)		(1 << ((X)-1))
@@ -52,7 +52,7 @@ struct MouseState
   int y;              // y location
   int16_t dx;         // change in x
   int16_t dy;         // change in y
-  char dz;            // change in z (wheel)
+  int8_t dz;          // change in z (wheel)
   bool button[5];     // current state of the buttons
   bool active;        // true if the mouse is active
 };

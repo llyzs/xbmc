@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 
 #include "SettingAddon.h"
 #include "addons/Addon.h"
-#include "settings/SettingsManager.h"
-#include "threads/SingleLock.h"
+#include "settings/lib/SettingsManager.h"
 #include "utils/log.h"
 #include "utils/XBMCTinyXML.h"
 #include "utils/XMLUtils.h"
@@ -31,11 +30,7 @@
 CSettingAddon::CSettingAddon(const std::string &id, CSettingsManager *settingsManager /* = NULL */)
   : CSettingString(id, settingsManager),
     m_addonType(ADDON::ADDON_UNKNOWN)
-{
-  m_control.SetType(SettingControlTypeButton);
-  m_control.SetFormat(SettingControlFormatAddon);
-  m_control.SetAttributes(SettingControlAttributeNone);
-}
+{ }
   
 CSettingAddon::CSettingAddon(const std::string &id, const CSettingAddon &setting)
   : CSettingString(id, setting)
@@ -43,39 +38,32 @@ CSettingAddon::CSettingAddon(const std::string &id, const CSettingAddon &setting
   copy(setting);
 }
 
+CSetting* CSettingAddon::Clone(const std::string &id) const
+{
+  return new CSettingAddon(id, *this);
+}
+
 bool CSettingAddon::Deserialize(const TiXmlNode *node, bool update /* = false */)
 {
-  CSingleLock lock(m_critical);
+  CExclusiveLock lock(m_critical);
 
   if (!CSettingString::Deserialize(node, update))
     return false;
     
-  if (m_control.GetType() != SettingControlTypeButton ||
-      m_control.GetFormat() != SettingControlFormatAddon ||
-      m_control.GetAttributes() != SettingControlAttributeNone)
+  if (m_control != NULL &&
+     (m_control->GetType() != "button" || m_control->GetFormat() != "addon"))
   {
     CLog::Log(LOGERROR, "CSettingAddon: invalid <control> of \"%s\"", m_id.c_str());
     return false;
   }
     
-  // get the default value by abusing the FromString
-  // implementation to parse the default value
-  CStdString value;
-  if (XMLUtils::GetString(node, XML_ELM_DEFAULT, value))
-    m_value = m_default = value;
-  else if (!update)
-  {
-    CLog::Log(LOGERROR, "CSettingAddon: error reading the default value of \"%s\"", m_id.c_str());
-    return false;
-  }
-
   bool ok = false;
   CStdString strAddonType;
   const TiXmlNode *constraints = node->FirstChild("constraints");
   if (constraints != NULL)
   {
     // get the addon type
-    if (XMLUtils::GetString(constraints, "addontype", strAddonType))
+    if (XMLUtils::GetString(constraints, "addontype", strAddonType) && !strAddonType.empty())
     {
       m_addonType = ADDON::TranslateType(strAddonType);
       if (m_addonType != ADDON::ADDON_UNKNOWN)
@@ -95,6 +83,7 @@ bool CSettingAddon::Deserialize(const TiXmlNode *node, bool update /* = false */
 void CSettingAddon::copy(const CSettingAddon &setting)
 {
   CSettingString::Copy(setting);
-
+  
+  CExclusiveLock lock(m_critical);
   m_addonType = setting.m_addonType;
 }

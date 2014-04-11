@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ CPVRChannelGroupInternal::CPVRChannelGroupInternal(const CPVRChannelGroup &group
 CPVRChannelGroupInternal::~CPVRChannelGroupInternal(void)
 {
   Unload();
+  g_PVRManager.UnregisterObserver(this);
 }
 
 bool CPVRChannelGroupInternal::Load(void)
@@ -60,7 +61,8 @@ bool CPVRChannelGroupInternal::Load(void)
   if (CPVRChannelGroup::Load())
   {
     UpdateChannelPaths();
-    CreateChannelEpgs();
+    g_PVRManager.RegisterObserver(this);
+      
     return true;
   }
 
@@ -369,6 +371,8 @@ void CPVRChannelGroupInternal::CreateChannelEpg(CPVRChannelPtr channel, bool bFo
 
 bool CPVRChannelGroupInternal::CreateChannelEpgs(bool bForce /* = false */)
 {
+  if (!g_EpgContainer.IsStarted())
+    return false;
   {
     CSingleLock lock(m_critSection);
     for (unsigned int iChannelPtr = 0; iChannelPtr < m_members.size(); iChannelPtr++)
@@ -382,4 +386,12 @@ bool CPVRChannelGroupInternal::CreateChannelEpgs(bool bForce /* = false */)
   }
 
   return true;
+}
+
+void CPVRChannelGroupInternal::Notify(const Observable &obs, const ObservableMessage msg)
+{
+  if (msg == ObservableMessageManagerStateChanged)
+  {
+    g_PVRManager.TriggerEpgsCreate();
+  }
 }

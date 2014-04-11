@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 
 //#define WEBSERVER_DEBUG
 
-#ifdef _WIN32
+#ifdef TARGET_WINDOWS
 #pragma comment(lib, "libmicrohttpd.dll.lib")
 #endif
 
@@ -75,15 +75,21 @@ CWebServer::CWebServer()
 
 int CWebServer::FillArgumentMap(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) 
 {
+  if (cls == NULL || key == NULL)
+    return MHD_NO;
+
   map<string, string> *arguments = (map<string, string> *)cls;
-  arguments->insert(pair<string,string>(key,value));
+  arguments->insert(pair<string, string>(key, value != NULL ? value : StringUtils::Empty));
   return MHD_YES; 
 }
 
 int CWebServer::FillArgumentMultiMap(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) 
 {
+  if (cls == NULL || key == NULL)
+    return MHD_NO;
+
   multimap<string, string> *arguments = (multimap<string, string> *)cls;
-  arguments->insert(pair<string,string>(key,value));
+  arguments->insert(pair<string, string>(key, value != NULL ? value : StringUtils::Empty));
   return MHD_YES; 
 }
 
@@ -402,7 +408,7 @@ int CWebServer::CreateFileDownloadResponse(struct MHD_Connection *connection, co
 
     // get the MIME type for the Content-Type header
     CStdString ext = URIUtils::GetExtension(strURL);
-    ext = ext.ToLower();
+    StringUtils::ToLower(ext);
     string mimeType = CreateMimeTypeFromExtension(ext.c_str());
 
     if (methodType != HEAD)
@@ -537,8 +543,7 @@ int CWebServer::CreateFileDownloadResponse(struct MHD_Connection *connection, co
     {
       getData = false;
 
-      CStdString contentLength;
-      contentLength.Format("%" PRId64, fileLength);
+      CStdString contentLength = StringUtils::Format("%" PRId64, fileLength);
 
       response = MHD_create_response_from_data(0, NULL, MHD_NO, MHD_NO);
       if (response == NULL)
@@ -786,7 +791,7 @@ bool CWebServer::Start(int port, const string &username, const string &password)
   if (!m_running)
   {
     int v6testSock;
-    if ((v6testSock = socket(AF_INET6, SOCK_STREAM, 0)) > 0)
+    if ((v6testSock = socket(AF_INET6, SOCK_STREAM, 0)) >= 0)
     {
       closesocket(v6testSock);
       m_daemon_ip6 = StartMHD(MHD_USE_IPv6, port);
@@ -838,32 +843,22 @@ void CWebServer::SetCredentials(const string &username, const string &password)
 
 bool CWebServer::PrepareDownload(const char *path, CVariant &details, std::string &protocol)
 {
-  bool exists = false;
-  CFile *file = new CFile();
-  if (file->Open(path))
-  {
-    exists = true;
-    file->Close();
-  }
-
-  delete file;
-
-  if (exists)
+  if (CFile::Exists(path))
   {
     protocol = "http";
     string url;
     CStdString strPath = path;
-    if (strPath.Left(8) == "image://" ||
-       (strPath.Left(10) == "special://" && strPath.Right(4) == ".tbn"))
+    if (StringUtils::StartsWith(strPath, "image://") ||
+       (StringUtils::StartsWith(strPath, "special://") && StringUtils::EndsWith(strPath, ".tbn")))
       url = "image/";
     else
       url = "vfs/";
-    CURL::Encode(strPath);
-    url += strPath;
+    url += CURL::Encode(strPath);
     details["path"] = url;
+    return true;
   }
 
-  return exists;
+  return false;
 }
 
 bool CWebServer::Download(const char *path, CVariant &result)
@@ -974,7 +969,7 @@ int64_t CWebServer::ParseRangeHeader(const std::string &rangeHeaderValue, int64_
   firstPosition = 0;
   lastPosition = totalLength - 1;
 
-  if (rangeHeaderValue.empty() || !StringUtils::StartsWith(rangeHeaderValue, "bytes="))
+  if (rangeHeaderValue.empty() || !StringUtils::StartsWithNoCase(rangeHeaderValue, "bytes="))
     return totalLength;
 
   int64_t rangesLength = 0;

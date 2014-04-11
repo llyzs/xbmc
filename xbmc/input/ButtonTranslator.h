@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ public:
                                bool &fullrange);
 #endif
 
-  bool TranslateTouchAction(int touchAction, int touchPointers, int &window, int &action);
+  bool TranslateTouchAction(int window, int touchAction, int touchPointers, int &action);
 
 private:
   typedef std::multimap<uint32_t, CButtonAction> buttonMap; // our button map to fill in

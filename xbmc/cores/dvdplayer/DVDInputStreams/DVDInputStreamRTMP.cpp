@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
  *
  */
 
-#if (defined HAVE_CONFIG_H) && (!defined WIN32)
+#if (defined HAVE_CONFIG_H) && (!defined TARGET_WINDOWS)
   #include "config.h"
 #endif
-#ifdef _WIN32
+#ifdef TARGET_WINDOWS
 #include "system.h" // just for HAS_LIBRTMP
 #endif
 
@@ -226,6 +226,9 @@ bool CDVDInputStreamRTMP::Pause(double dTime)
   CSingleLock lock(m_RTMPSection);
 
   m_bPaused = !m_bPaused;
+
+  CLog::Log(LOGNOTICE, "RTMP Pause %s requested", m_bPaused ? "TRUE" : "FALSE");
+
   m_libRTMP.Pause(m_rtmp, m_bPaused);
 
   return true;

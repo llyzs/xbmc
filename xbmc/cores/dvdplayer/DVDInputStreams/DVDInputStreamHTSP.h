@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ public:
   bool            PrevChannel(bool preview = false);
   bool            SelectChannelByNumber(unsigned int channel);
   bool            SelectChannel(const PVR::CPVRChannel &channel) { return false; }
-  bool            GetSelectedChannel(PVR::CPVRChannel *channel) {return false; }
+  static bool     GetSelectedChannel(PVR::CPVRChannel *channel) {return false; }
   bool            UpdateItem(CFileItem& item);
 
   bool            CanRecord()         { return false; }

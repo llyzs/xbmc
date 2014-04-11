@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ CDVDInputStreamPVRManager::CDVDInputStreamPVRManager(IDVDPlayer* pPlayer) : CDVD
   m_pLiveTV         = NULL;
   m_pOtherStream    = NULL;
   m_eof             = true;
-  m_iScanTimeout    = 0;
+  m_ScanTimeout.Set(0);
 }
 
 /************************************************************************
@@ -58,15 +58,13 @@ CDVDInputStreamPVRManager::~CDVDInputStreamPVRManager()
 
 void CDVDInputStreamPVRManager::ResetScanTimeout(unsigned int iTimeoutMs)
 {
-  m_iScanTimeout = iTimeoutMs > 0 ?
-      XbmcThreads::SystemClockMillis() + iTimeoutMs :
-      0;
+  m_ScanTimeout.Set(iTimeoutMs);
 }
 
 bool CDVDInputStreamPVRManager::IsEOF()
 {
   // don't mark as eof while within the scan timeout
-  if (m_iScanTimeout && XbmcThreads::SystemClockMillis() < m_iScanTimeout)
+  if (!m_ScanTimeout.IsTimePast())
     return false;
 
   if (m_pOtherStream)
@@ -178,7 +176,7 @@ int CDVDInputStreamPVRManager::Read(uint8_t* buf, int buf_size)
     unsigned int ret = m_pFile->Read(buf, buf_size);
 
     /* we currently don't support non completing reads */
-    if( ret <= 0 ) m_eof = true;
+    if( ret == 0 ) m_eof = true;
 
     return (int)(ret & 0xFFFFFFFF);
   }
@@ -189,15 +187,15 @@ int64_t CDVDInputStreamPVRManager::Seek(int64_t offset, int whence)
   if (!m_pFile)
     return -1;
 
-  if (whence == SEEK_POSSIBLE)
-    return m_pFile->IoControl(IOCTRL_SEEK_POSSIBLE, NULL);
-
   if (m_pOtherStream)
   {
     return m_pOtherStream->Seek(offset, whence);
   }
   else
   {
+    if (whence == SEEK_POSSIBLE)
+      return m_pFile->IoControl(IOCTRL_SEEK_POSSIBLE, NULL);
+
     int64_t ret = m_pFile->Seek(offset, whence);
 
     /* if we succeed, we are not eof anymore */

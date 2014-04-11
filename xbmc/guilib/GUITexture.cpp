@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,17 +47,15 @@ CTextureInfo& CTextureInfo::operator=(const CTextureInfo &right)
   filename = right.filename;
   useLarge = right.useLarge;
   diffuseColor = right.diffuseColor;
-
   return *this;
 }
 
-CGUITextureBase::CGUITextureBase(float posX, float posY, float width, float height, const CTextureInfo& texture)
+CGUITextureBase::CGUITextureBase(float posX, float posY, float width, float height, const CTextureInfo& texture) :
+  m_height(height), m_info(texture)
 {
   m_posX = posX;
   m_posY = posY;
   m_width = width;
-  m_height = height;
-  m_info = texture;
 
   // defaults
   m_visible = true;
@@ -84,22 +82,24 @@ CGUITextureBase::CGUITextureBase(float posX, float posY, float width, float heig
   m_allocateDynamically = false;
   m_isAllocated = NO;
   m_invalid = true;
+  m_use_cache = true;
 }
 
-CGUITextureBase::CGUITextureBase(const CGUITextureBase &right)
+CGUITextureBase::CGUITextureBase(const CGUITextureBase &right) :
+  m_height(right.m_height),
+  m_alpha(right.m_alpha),
+  m_info(right.m_info),
+  m_aspect(right.m_aspect)
 {
   m_posX = right.m_posX;
   m_posY = right.m_posY;
   m_width = right.m_width;
-  m_height = right.m_height;
-  m_info = right.m_info;
 
   m_visible = right.m_visible;
   m_diffuseColor = right.m_diffuseColor;
-  m_alpha = right.m_alpha;
-  m_aspect = right.m_aspect;
 
   m_allocateDynamically = right.m_allocateDynamically;
+  m_use_cache = right.m_use_cache;
 
   // defaults
   m_vertex.SetRect(m_posX, m_posY, m_posX + m_width, m_posY + m_height);
@@ -289,7 +289,7 @@ void CGUITextureBase::Render(float left, float top, float right, float bottom, f
 
 bool CGUITextureBase::AllocResources()
 {
-  if (m_info.filename.IsEmpty())
+  if (m_info.filename.empty())
     return false;
 
   if (m_texture.size())
@@ -318,7 +318,7 @@ bool CGUITextureBase::AllocResources()
     if (m_isAllocated != NORMAL)
     { // use our large image background loader
       CTextureArray texture;
-      if (g_largeTextureManager.GetImage(m_info.filename, texture, !IsAllocated()))
+      if (g_largeTextureManager.GetImage(m_info.filename, texture, !IsAllocated(), m_use_cache))
       {
         m_isAllocated = LARGE;
 
@@ -349,7 +349,7 @@ bool CGUITextureBase::AllocResources()
   m_frameHeight = (float)m_texture.m_height;
 
   // load the diffuse texture (if necessary)
-  if (!m_info.diffuse.IsEmpty())
+  if (!m_info.diffuse.empty())
   {
     m_diffuse = g_TextureManager.Load(m_info.diffuse);
   }
@@ -462,10 +462,10 @@ void CGUITextureBase::FreeResources(bool immediately /* = false */)
   if (m_isAllocated == LARGE || m_isAllocated == LARGE_FAILED)
     g_largeTextureManager.ReleaseImage(m_info.filename, immediately || (m_isAllocated == LARGE_FAILED));
   else if (m_isAllocated == NORMAL && m_texture.size())
-    g_TextureManager.ReleaseTexture(m_info.filename);
+    g_TextureManager.ReleaseTexture(m_info.filename, immediately);
 
   if (m_diffuse.size())
-    g_TextureManager.ReleaseTexture(m_info.diffuse);
+    g_TextureManager.ReleaseTexture(m_info.diffuse, immediately);
   m_diffuse.Reset();
 
   m_texture.Reset();
@@ -655,6 +655,11 @@ bool CGUITextureBase::SetFileName(const CStdString& filename)
   m_info.filename = filename;
   // Don't allocate resources here as this is done at render time
   return true;
+}
+
+void CGUITextureBase::SetUseCache(const bool useCache)
+{
+  m_use_cache = useCache;
 }
 
 int CGUITextureBase::GetOrientation() const

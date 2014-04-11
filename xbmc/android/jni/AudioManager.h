@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,18 +18,24 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+
 #include "JNIBase.h"
 
 class CJNIAudioManager : public CJNIBase
 {
 public:
+  CJNIAudioManager(const jni::jhobject &object) : CJNIBase(object) {};
+  ~CJNIAudioManager() {};
+
   // Note removal of streamType param.
-  int getStreamMaxVolume();
+  int  getStreamMaxVolume();
+  int  getStreamVolume();
   void setStreamVolume(int index = 0, int flags = 0);
-  ~CJNIAudioManager(){};
-  CJNIAudioManager(const jni::jhobject &object);
+
+  static void PopulateStaticFields();
+  static int STREAM_MUSIC;
 
 private:
   CJNIAudioManager();
-  static int STREAM_MUSIC;
 };
+

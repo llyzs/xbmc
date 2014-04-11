@@ -1,7 +1,7 @@
 #pragma once
 /*
- *      Copyright (C) 2005-2011 Team XBMC
- *      http://www.xbmc.org
+ *      Copyright (C) 2005-2013 Team XBMC
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,9 +14,8 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -24,6 +23,7 @@
 #include "cores/dvdplayer/DVDStreamInfo.h"
 #include "cores/VideoRenderers/RenderFeatures.h"
 #include "guilib/Geometry.h"
+#include "rendering/RenderSystem.h"
 #include "threads/Thread.h"
 
 typedef struct am_private_t am_private_t;
@@ -40,7 +40,7 @@ public:
   void          CloseDecoder();
   void          Reset();
 
-  int           Decode(unsigned char *pData, size_t size, double dts, double pts);
+  int           Decode(uint8_t *pData, size_t size, double dts, double pts);
 
   bool          GetPicture(DVDVideoPicture* pDvdVideoPicture);
   void          SetSpeed(int speed);
@@ -59,6 +59,8 @@ private:
   void          SetVideoBrightness(const int brightness);
   void          SetVideoSaturation(const int saturation);
   void          GetRenderFeatures(Features &renderFeatures);
+  void          SetVideo3dMode(const int mode3d);
+  std::string   GetStereoMode();
   static void   RenderFeaturesCallBack(const void *ctx, Features &renderFeatures);
   void          SetVideoRect(const CRect &SrcRect, const CRect &DestRect);
   static void   RenderUpdateCallBack(const void *ctx, const CRect &SrcRect, const CRect &DestRect);
@@ -80,6 +82,8 @@ private:
 
   CRect            m_dst_rect;
   int              m_view_mode;
+  RENDER_STEREO_MODE m_stereo_mode;
+  RENDER_STEREO_VIEW m_stereo_view;
   float            m_zoom;
   int              m_contrast;
   int              m_brightness;

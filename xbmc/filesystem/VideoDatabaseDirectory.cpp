@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/LegacyPathTranslation.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace XFILE;
@@ -59,7 +60,7 @@ bool CVideoDatabaseDirectory::GetDirectory(const CStdString& strPath, CFileItemL
     if (item->m_bIsFolder && !item->HasIcon() && !item->HasArt("thumb"))
     {
       CStdString strImage = GetIcon(item->GetPath());
-      if (!strImage.IsEmpty() && g_TextureManager.HasTexture(strImage))
+      if (!strImage.empty() && g_TextureManager.HasTexture(strImage))
         item->SetIconImage(strImage);
     }
   }
@@ -126,14 +127,13 @@ void CVideoDatabaseDirectory::ClearDirectoryCache(const CStdString& strDirectory
   Crc32 crc;
   crc.ComputeFromLowerCase(path);
 
-  CStdString strFileName;
-  strFileName.Format("special://temp/%08x.fi", (unsigned __int32) crc);
+  CStdString strFileName = StringUtils::Format("special://temp/%08x.fi", (unsigned __int32) crc);
   CFile::Delete(strFileName);
 }
 
 bool CVideoDatabaseDirectory::IsAllItem(const CStdString& strDirectory)
 {
-  if (strDirectory.Right(4).Equals("/-1/"))
+  if (StringUtils::EndsWith(strDirectory, "/-1/"))
     return true;
   return false;
 }
@@ -144,7 +144,7 @@ bool CVideoDatabaseDirectory::GetLabel(const CStdString& strDirectory, CStdStrin
 
   CStdString path = CLegacyPathTranslation::TranslateVideoDbPath(strDirectory);
   auto_ptr<CDirectoryNode> pNode(CDirectoryNode::ParseURL(path));
-  if (!pNode.get() || path.IsEmpty())
+  if (!pNode.get() || path.empty())
     return false;
 
   // first see if there's any filter criteria
@@ -174,14 +174,13 @@ bool CVideoDatabaseDirectory::GetLabel(const CStdString& strDirectory, CStdStrin
   // get year
   if (params.GetYear() != -1)
   {
-    CStdString strTemp;
-    strTemp.Format("%i",params.GetYear());
-    if (!strLabel.IsEmpty())
+    CStdString strTemp = StringUtils::Format("%i",params.GetYear());
+    if (!strLabel.empty())
       strLabel += " / ";
     strLabel += strTemp;
   }
 
-  if (strLabel.IsEmpty())
+  if (strLabel.empty())
   {
     switch (pNode->GetChildType())
     {

@@ -2,6 +2,9 @@
  *      Copyright (C) 2010 Team Boxee
  *      http://www.boxee.tv
  *
+ *      Copyright (C) 2010-2013 Team XBMC
+ *      http://xbmc.org
+ *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
@@ -16,11 +19,10 @@
  *  along with XBMC; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
+ *  Note: parts of this code comes from libdvdread.
+ *  Jorgen Lundman and team boxee did the necessary modifications to support udf 2.5
  *
- * Note: parts of this code comes from libdvdread.
- * Jorgen Lundman and team boxee did the necessary modifications to support udf 2.5
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -605,7 +607,7 @@ int udf25::DVDReadLBUDF( uint32_t lb_number, size_t block_count, unsigned char *
 {
   int ret;
   size_t  len = block_count * DVD_VIDEO_LB_LEN;
-  int64_t pos = lb_number   * DVD_VIDEO_LB_LEN;
+  int64_t pos = lb_number   * (int64_t)DVD_VIDEO_LB_LEN;
 
   ret = ReadAt(pos, len, data);
   if(ret < 0)
@@ -716,6 +718,7 @@ int udf25::UDFFindPartition( int partnum, struct Partition *part )
         /* Partition Descriptor */
         UDFPartition( LogBlock, &part->Flags, &part->Number,
                       part->Contents, &part->Start, &part->Length );
+        part->Start_Correction = 0;
         part->valid = ( partnum == part->Number );
       } else if( ( TagID == 6 ) && ( !volvalid ) ) {
         /* Logical Volume Descriptor */
@@ -760,6 +763,8 @@ int udf25::UDFFindPartition( int partnum, struct Partition *part )
       UDFExtFileEntry( LogBlock, &File );
       if (File.Type == 250) {
         part->Start  += File.AD_chain[0].Location;
+        // we need to remember this correction because read positions are relative to the non-indirected partition start
+        part->Start_Correction = File.AD_chain[0].Location;
         part->Length  = File.AD_chain[0].Length;
         break;
       }
@@ -790,6 +795,7 @@ int udf25::UDFMapICB( struct AD ICB, struct Partition *partition, struct FileAD 
   memset(File, 0, sizeof(*File));
   File->Partition       = partition->Number;
   File->Partition_Start = partition->Start;
+  File->Partition_Start_Correction = partition->Start_Correction;
 
   do {
     if( DVDReadLBUDF( lbnum++, 1, LogBlock, 0 ) <= 0 )
@@ -1107,7 +1113,8 @@ long udf25::ReadFile(HANDLE hFile, unsigned char *pBuffer, long lSize)
     if(len == 0)
       break;
 
-    pos -= 32 * DVD_VIDEO_LB_LEN; /* why? */
+    // correct for partition indirection if applicable
+    pos -= bdfile->file->Partition_Start_Correction * DVD_VIDEO_LB_LEN;
 
     if((uint32_t)lSize < len)
       len = lSize;
