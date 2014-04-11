@@ -2,7 +2,7 @@
 
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include "cores/VideoRenderers/RenderManager.h"
 #endif
 
-enum CodecID;
 class CDemuxStreamVideo;
 class CDVDOverlayCodecCC;
 
@@ -88,6 +87,7 @@ public:
   double GetOutputDelay(); /* returns the expected delay, from that a packet is put in queue */
   std::string GetPlayerInfo();
   int GetVideoBitrate();
+  std::string GetStereoMode();
 
   void SetSpeed(int iSpeed);
 
@@ -154,6 +154,7 @@ protected:
     unsigned int chroma_position;
     unsigned int color_primaries;
     unsigned int color_transfer;
+    unsigned int stereo_flags;
     double       framerate;
   } m_output; //holds currently configured output
 

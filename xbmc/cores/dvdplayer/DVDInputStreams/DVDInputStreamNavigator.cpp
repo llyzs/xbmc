@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -187,8 +187,14 @@ bool CDVDInputStreamNavigator::Open(const char* strFile, const std::string& cont
     m_dll.dvdnav_get_next_cache_block(m_dvdnav,&buf_ptr,&event,&len);
     m_dll.dvdnav_sector_search(m_dvdnav, 0, SEEK_SET);
 
+    // first try title menu
     if(m_dll.dvdnav_menu_call(m_dvdnav, DVD_MENU_Title) != DVDNAV_STATUS_OK)
+    {
       CLog::Log(LOGERROR,"Error on dvdnav_menu_call(Title): %s\n", m_dll.dvdnav_err_to_string(m_dvdnav));
+      // next try root menu
+      if(m_dll.dvdnav_menu_call(m_dvdnav, DVD_MENU_Root) != DVDNAV_STATUS_OK )
+        CLog::Log(LOGERROR,"Error on dvdnav_menu_call(Root): %s\n", m_dll.dvdnav_err_to_string(m_dvdnav));
+    }
   }
 
   m_bEOF = false;
@@ -231,14 +237,25 @@ int CDVDInputStreamNavigator::Read(uint8_t* buf, int buf_size)
     return -1;
   }
 
-  int navresult;
   int iBytesRead;
 
+  int NOPcount = 0;
   while(true) {
-    navresult = ProcessBlock(buf, &iBytesRead);
+    int navresult = ProcessBlock(buf, &iBytesRead);
     if (navresult == NAVRESULT_HOLD)       return 0; // return 0 bytes read;
     else if (navresult == NAVRESULT_ERROR) return -1;
     else if (navresult == NAVRESULT_DATA)  return iBytesRead;
+    else if (navresult == NAVRESULT_NOP)
+    {
+      NOPcount++;
+      if (NOPcount == 1000) 
+      {
+        m_bEOF = true;
+        CLog::Log(LOGERROR,"CDVDInputStreamNavigator: Stopping playback due to infinite loop, caused by badly authored DVD navigation structure. Try enabling 'Attempt to skip introduction before DVD menu'.");
+        m_pDVDPlayer->OnDVDNavResult(NULL, DVDNAV_STOP);
+        return -1; // fail and stop playback.
+      }
+    }
   }
 
   return iBytesRead;
@@ -354,6 +371,14 @@ int CDVDInputStreamNavigator::ProcessBlock(uint8_t* dest_buffer, int* read)
 
         //libdvdnav never sets logical, why.. don't know..
         event->logical = GetActiveSubtitleStream();
+
+        /* correct stream ids for disabled subs if needed */
+        if(!IsSubtitleStreamEnabled())
+        {
+          event->physical_letterbox |= 0x80;
+          event->physical_pan_scan |= 0x80;
+          event->physical_wide |= 0x80;
+        }
 
         if(event->logical<0 && GetSubTitleStreamCount()>0)
         {
@@ -845,7 +870,7 @@ bool CDVDInputStreamNavigator::GetSubtitleStreamInfo(const int iId, DVDNavStream
   return false;
 }
 
-void CDVDInputStreamNavigator::SetSubtitleStreamName(DVDNavStreamInfo &info, const subp_attr_t subp_attributes)
+void CDVDInputStreamNavigator::SetSubtitleStreamName(DVDNavStreamInfo &info, const subp_attr_t &subp_attributes)
 {
   if (subp_attributes.type == DVD_SUBPICTURE_TYPE_Language ||
     subp_attributes.type == DVD_SUBPICTURE_TYPE_NotSpecified)
@@ -932,7 +957,7 @@ int CDVDInputStreamNavigator::GetActiveAudioStream()
   return activeStream;
 }
 
-void CDVDInputStreamNavigator::SetAudioStreamName(DVDNavStreamInfo &info, const audio_attr_t audio_attributes)
+void CDVDInputStreamNavigator::SetAudioStreamName(DVDNavStreamInfo &info, const audio_attr_t &audio_attributes)
 {
   switch( audio_attributes.code_extension )
   {
@@ -1110,7 +1135,7 @@ int CDVDInputStreamNavigator::GetTime()
 
 bool CDVDInputStreamNavigator::SeekTime(int iTimeInMsec)
 {
-  if( m_dll.dvdnav_time_search(m_dvdnav, iTimeInMsec * 90) == DVDNAV_STATUS_ERR )
+  if( m_dll.dvdnav_jump_to_sector_by_time(m_dvdnav, iTimeInMsec * 90, 0) == DVDNAV_STATUS_ERR )
   {
     CLog::Log(LOGDEBUG, "dvdnav: dvdnav_time_search failed( %s )", m_dll.dvdnav_err_to_string(m_dvdnav));
     return false;
@@ -1411,4 +1436,22 @@ int CDVDInputStreamNavigator::ConvertSubtitleStreamId_ExternalToXBMC(int id)
     // non VTS_DOMAIN, only one stream is available
     return 0;
   }
+}
+
+bool CDVDInputStreamNavigator::GetDVDTitleString(std::string& titleStr)
+{
+  if (!m_dvdnav) return false;
+  const char* str = NULL;
+  m_dll.dvdnav_get_title_string(m_dvdnav, &str);
+  titleStr.assign(str);
+  return true;
+}
+
+bool CDVDInputStreamNavigator::GetDVDSerialString(std::string& serialStr)
+{
+  if (!m_dvdnav) return false;
+  const char* str = NULL;
+  m_dll.dvdnav_get_serial_string(m_dvdnav, &str);
+  serialStr.assign(str);
+  return true;
 }

@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,9 +38,101 @@ CAlbum::CAlbum(const CFileItem& item)
   strMusicBrainzAlbumID = tag.GetMusicBrainzAlbumID();
   genre = tag.GetGenre();
   artist = tag.GetAlbumArtist();
+  if (!tag.GetMusicBrainzAlbumArtistID().empty())
+  { // have musicbrainz artist info, so use it
+    for (size_t i = 0; i < tag.GetMusicBrainzAlbumArtistID().size(); i++)
+    {
+      CStdString artistId = tag.GetMusicBrainzAlbumArtistID()[i];
+      CStdString artistName;
+      /*
+       We try and get the corresponding artist name from the album artist tag.
+       We match on the same index, and if that fails just use the first name we have.
+       If no albumartist exists, try matching on artist if the MBArtistID matches.
+       */
+      if (!artist.empty())
+        artistName = (i < artist.size()) ? artist[i] : artist[0];
+      else if (!tag.GetMusicBrainzArtistID().empty() && !tag.GetArtist().empty())
+      {
+        vector<string>::const_iterator j = std::find(tag.GetMusicBrainzArtistID().begin(), tag.GetMusicBrainzArtistID().end(), artistId);
+        if (j != tag.GetMusicBrainzArtistID().end())
+        { // find corresponding artist
+          size_t d = std::distance(j,tag.GetMusicBrainzArtistID().begin());
+          artistName = (d < tag.GetArtist().size()) ? tag.GetArtist()[d] : tag.GetArtist()[0];
+        }
+      }
+      if (artistName.empty())
+        artistName = artistId;
+      CStdString strJoinPhrase = (i == tag.GetMusicBrainzAlbumArtistID().size()-1) ? "" : g_advancedSettings.m_musicItemSeparator;
+      CArtistCredit artistCredit(artistName, tag.GetMusicBrainzAlbumArtistID()[i], strJoinPhrase);
+      artistCredits.push_back(artistCredit);
+    }
+  }
+  else
+  { // no musicbrainz info, so fill in directly
+    for (vector<string>::const_iterator it = tag.GetAlbumArtist().begin(); it != tag.GetAlbumArtist().end(); ++it)
+    {
+      CStdString strJoinPhrase = (it == --tag.GetAlbumArtist().end() ? "" : g_advancedSettings.m_musicItemSeparator);
+      CArtistCredit artistCredit(*it, "", strJoinPhrase);
+      artistCredits.push_back(artistCredit);
+    }
+  }
   iYear = stTime.wYear;
   bCompilation = tag.GetCompilation();
   iTimesPlayed = 0;
+}
+
+void CAlbum::MergeScrapedAlbum(const CAlbum& source, bool override /* = true */)
+{
+  /*
+   We don't merge musicbrainz album ID so that a refresh of album information
+   allows a lookup based on name rather than directly (re)using musicbrainz.
+   In future, we may wish to be able to override lookup by musicbrainz so
+   this might be dropped.
+   */
+//  strMusicBrainzAlbumID = source.strMusicBrainzAlbumID;
+  if ((override && !source.genre.empty()) || genre.empty())
+    genre = source.genre;
+  if ((override && !source.strAlbum.empty()) || strAlbum.empty())
+    strAlbum = source.strAlbum;
+  if ((override && source.iYear > 0) || iYear == 0)
+    iYear = source.iYear;
+  if (override)
+    bCompilation = source.bCompilation;
+  //  iTimesPlayed = source.iTimesPlayed; // times played is derived from songs
+  for (std::map<std::string, std::string>::const_iterator i = source.art.begin(); i != source.art.end(); ++i)
+  {
+    if (override || art.find(i->first) == art.end())
+      art[i->first] = i->second;
+  }
+  strLabel = source.strLabel;
+  thumbURL = source.thumbURL;
+  moods = source.moods;
+  styles = source.styles;
+  themes = source.themes;
+  strReview = source.strReview;
+  strType = source.strType;
+//  strPath = source.strPath; // don't merge the path
+  m_strDateOfRelease = source.m_strDateOfRelease;
+  iRating = source.iRating;
+  if (override)
+  {
+    artistCredits = source.artistCredits;
+    artist = source.artist; // artist information is read-only from the database. artistCredits is what counts on scan
+  }
+  else if (source.artistCredits.size() > artistCredits.size())
+    artistCredits.insert(artistCredits.end(), source.artistCredits.begin()+artistCredits.size(), source.artistCredits.end());
+  if (!strMusicBrainzAlbumID.empty())
+  {
+    /* update local songs with MB information */
+    for (VECSONGS::iterator song = songs.begin(); song != songs.end(); ++song)
+    {
+      if (!song->strMusicBrainzTrackID.empty())
+        for (VECSONGS::const_iterator sourceSong = source.infoSongs.begin(); sourceSong != source.infoSongs.end(); ++sourceSong)
+          if (sourceSong->strMusicBrainzTrackID == song->strMusicBrainzTrackID)
+            song->MergeScrapedSong(*sourceSong, override);
+    }
+  }
+  infoSongs = source.infoSongs;
 }
 
 CStdString CAlbum::GetArtistString() const
@@ -50,13 +142,22 @@ CStdString CAlbum::GetArtistString() const
 
 CStdString CAlbum::GetGenreString() const
 {
-  return StringUtils::Join(artist, g_advancedSettings.m_musicItemSeparator);
+  return StringUtils::Join(genre, g_advancedSettings.m_musicItemSeparator);
 }
 
 bool CAlbum::operator<(const CAlbum &a) const
 {
-  if (strAlbum < a.strAlbum) return true;
-  if (strAlbum > a.strAlbum) return false;
+  if (strMusicBrainzAlbumID.empty() && a.strMusicBrainzAlbumID.empty())
+  {
+    if (strAlbum < a.strAlbum) return true;
+    if (strAlbum > a.strAlbum) return false;
+
+    // This will do an std::vector compare (i.e. item by item)
+    if (artist < a.artist) return true;
+    if (artist > a.artist) return false;
+    return false;
+  }
+
   if (strMusicBrainzAlbumID < a.strMusicBrainzAlbumID) return true;
   if (strMusicBrainzAlbumID > a.strMusicBrainzAlbumID) return false;
   return false;
@@ -139,9 +240,22 @@ bool CAlbum::Load(const TiXmlElement *album, bool append, bool prioritise)
     albumArtistCreditsNode = albumArtistCreditsNode->NextSiblingElement("albumArtistCredits");
   }
 
+  // Support old style <artist></artist> for backwards compatibility
+  // .nfo files should ideally be updated to use the artist credits structure above
+  // or removed entirely in preference for better tags (MusicBrainz?)
+  if (artistCredits.empty() && !artist.empty())
+  {
+    for (vector<string>::const_iterator it = artist.begin(); it != artist.end(); ++it)
+    {
+      CArtistCredit artistCredit(*it, StringUtils::EmptyString,
+                                 it == --artist.end() ? StringUtils::EmptyString : g_advancedSettings.m_musicItemSeparator);
+      artistCredits.push_back(artistCredit);
+    }
+  }
+
   const TiXmlElement* node = album->FirstChildElement("track");
   if (node)
-    songs.clear();  // this means that the tracks can't be spread over separate pages
+    infoSongs.clear();  // this means that the tracks can't be spread over separate pages
                     // but this is probably a reasonable limitation
   bool bIncrement = false;
   while (node)
@@ -166,7 +280,7 @@ bool CAlbum::Load(const TiXmlElement *album, bool append, bool prioritise)
           song.artistCredits.push_back(artistCredit);
         }
         
-        songArtistCreditsNode = songArtistCreditsNode->NextSiblingElement("albumArtistCredits");
+        songArtistCreditsNode = songArtistCreditsNode->NextSiblingElement("songArtistCredits");
       }
 
       XMLUtils::GetString(node,   "musicBrainzTrackID",   song.strMusicBrainzTrackID);
@@ -183,7 +297,7 @@ bool CAlbum::Load(const TiXmlElement *album, bool append, bool prioritise)
       if (bIncrement)
         song.iTrack = song.iTrack + 1;
 
-      songs.push_back(song);
+      infoSongs.push_back(song);
     }
     node = node->NextSiblingElement("track");
   }
@@ -242,12 +356,12 @@ bool CAlbum::Save(TiXmlNode *node, const CStdString &tag, const CStdString& strP
     XMLUtils::SetString(albumArtistCreditsNode,            "featuring", artistCredit->GetArtist());
   }
 
-  for( VECSONGS::const_iterator song = songs.begin(); song != songs.end(); ++song)
+  for( VECSONGS::const_iterator song = infoSongs.begin(); song != infoSongs.end(); ++song)
   {
     // add a <song> tag
     TiXmlElement cast("track");
     TiXmlNode *node = album->InsertEndChild(cast);
-    for( VECARTISTCREDITS::const_iterator artistCredit = song->artistCredits.begin(); artistCredit != artistCredits.end(); ++artistCredit)
+    for( VECARTISTCREDITS::const_iterator artistCredit = song->artistCredits.begin(); artistCredit != song->artistCredits.end(); ++artistCredit)
     {
       // add an <albumArtistCredits> tag
       TiXmlElement songArtistCreditsElement("songArtistCredits");

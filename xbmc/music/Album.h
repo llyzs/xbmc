@@ -6,7 +6,7 @@
 
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,12 +38,13 @@ public:
   CAlbum(const CFileItem& item);
   CAlbum() { idAlbum = 0; iRating = 0; iYear = 0; iTimesPlayed = 0; };
   bool operator<(const CAlbum &a) const;
+  void MergeScrapedAlbum(const CAlbum& album, bool override = true);
 
   void Reset()
   {
     idAlbum = -1;
-    strAlbum.Empty();
-    strMusicBrainzAlbumID.Empty();
+    strAlbum.clear();
+    strMusicBrainzAlbumID.clear();
     artist.clear();
     artistCredits.clear();
     genre.clear();
@@ -52,16 +53,17 @@ public:
     styles.clear();
     themes.clear();
     art.clear();
-    strReview.Empty();
-    strLabel.Empty();
-    strType.Empty();
-    strPath.Empty();
-    m_strDateOfRelease.Empty();
+    strReview.clear();
+    strLabel.clear();
+    strType.clear();
+    strPath.clear();
+    m_strDateOfRelease.clear();
     iRating=-1;
     iYear=-1;
     bCompilation = false;
     iTimesPlayed = 0;
     songs.clear();
+    infoSongs.clear();
   }
 
   CStdString GetArtistString() const;
@@ -97,7 +99,8 @@ public:
   int iYear;
   bool bCompilation;
   int iTimesPlayed;
-  VECSONGS songs;
+  VECSONGS songs;     ///< Local songs
+  VECSONGS infoSongs; ///< Scraped songs
 };
 
 typedef std::vector<CAlbum> VECALBUMS;

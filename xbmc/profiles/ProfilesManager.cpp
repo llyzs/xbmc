@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -78,11 +78,6 @@ CProfilesManager& CProfilesManager::Get()
 {
   static CProfilesManager sProfilesManager;
   return sProfilesManager;
-}
-
-bool CProfilesManager::OnSettingsLoading()
-{
-  return true;
 }
 
 void CProfilesManager::OnSettingsLoaded()
@@ -221,11 +216,11 @@ bool CProfilesManager::Save(const std::string &file) const
 void CProfilesManager::Clear()
 {
   CSingleLock lock(m_critical);
-  m_profiles.clear();
   m_usingLoginScreen = false;
   m_lastUsedProfile = 0;
   m_nextProfileId = 0;
   SetCurrentProfileId(0);
+  m_profiles.clear();
 }
 
 bool CProfilesManager::LoadProfile(size_t index)
@@ -253,9 +248,6 @@ bool CProfilesManager::LoadProfile(size_t index)
   CSettings::Get().SetLoaded();
 
   CreateProfileFolders();
-
-  // initialize our charset converter
-  g_charsetConverter.reset();
 
   // Load the langinfo to have user charset <-> utf-8 conversion
   string strLanguage = CSettings::Get().GetString("locale.language");
@@ -372,7 +364,7 @@ void CProfilesManager::CreateProfileFolders()
 const CProfile& CProfilesManager::GetMasterProfile() const
 {
   CSingleLock lock(m_critical);
-  if (m_profiles.size() > 0)
+  if (!m_profiles.empty())
     return m_profiles[0];
 
   CLog::Log(LOGERROR, "%s: master profile doesn't exist", __FUNCTION__);

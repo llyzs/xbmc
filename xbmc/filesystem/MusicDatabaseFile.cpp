@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,9 +56,8 @@ CStdString CMusicDatabaseFile::TranslateUrl(const CURL& url)
   if (!musicDatabase.GetSong(idSong, song))
     return "";
 
-  CStdString strExtensionFromDb = URIUtils::GetExtension(song.strFileName);
-
-  if (!strExtensionFromDb.Equals(strExtension))
+  StringUtils::ToLower(strExtension);
+  if (!URIUtils::HasExtension(song.strFileName, strExtension))
     return "";
 
   return song.strFileName;
@@ -71,7 +70,7 @@ bool CMusicDatabaseFile::Open(const CURL& url)
 
 bool CMusicDatabaseFile::Exists(const CURL& url)
 {
-  return !TranslateUrl(url).IsEmpty();
+  return !TranslateUrl(url).empty();
 }
 
 int CMusicDatabaseFile::Stat(const CURL& url, struct __stat64* buffer)

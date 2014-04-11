@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MAKEFLAGS=""
+BGPROCESSFILE="$2"
 
 if [ "$1" == "clean" ]
 then
@@ -47,6 +48,7 @@ OPTIONS="
 --enable-runtime-cpudetect \
 --enable-avfilter \
 --enable-dxva2 \
+--enable-gnutls \
 --disable-doc"
 
 ./configure --extra-cflags="-fno-common -Iinclude-xbmc-win32/dxva2 -DNDEBUG" --extra-ldflags="-L/xbmc/system/players/dvdplayer" ${OPTIONS} &&
@@ -60,3 +62,6 @@ cp .libs/avfilter-3.dll /xbmc/system/players/dvdplayer/ &&
 cp .libs/postproc-52.dll /xbmc/system/players/dvdplayer/ &&
 cp .libs/swresample-0.dll /xbmc/system/players/dvdplayer/ &&
 cp .libs/swscale-2.dll /xbmc/system/players/dvdplayer/
+
+#remove the bgprocessfile for signaling the process end
+rm $BGPROCESSFILE

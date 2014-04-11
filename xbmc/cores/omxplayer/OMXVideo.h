@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2010-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,13 +31,14 @@
 #include "guilib/Geometry.h"
 #include "DVDDemuxers/DVDDemux.h"
 #include "xbmc/settings/VideoSettings.h"
+#include "threads/CriticalSection.h"
 #include <string>
 
 #define VIDEO_BUFFERS 60
 
 #define CLASSNAME "COMXVideo"
 
-typedef void (*ResolutionUpdateCallBackFn)(void *ctx, uint32_t width, uint32_t height);
+typedef void (*ResolutionUpdateCallBackFn)(void *ctx, uint32_t width, uint32_t height, float display_aspect);
 
 class COMXVideo
 {
@@ -53,7 +54,7 @@ public:
   void Close(void);
   unsigned int GetFreeSpace();
   unsigned int GetSize();
-  int  Decode(uint8_t *pData, int iSize, double dts, double pts);
+  int  Decode(uint8_t *pData, int iSize, double pts);
   void Reset(void);
   void SetDropState(bool bDrop);
   std::string GetDecoderName() { return m_video_codec_name; };
@@ -83,23 +84,24 @@ protected:
   COMXCoreTunel     m_omx_tunnel_sched;
   COMXCoreTunel     m_omx_tunnel_image_fx;
   bool              m_is_open;
+  bool              m_setStartTime;
 
   uint8_t           *m_extradata;
   int               m_extrasize;
 
-  bool              m_video_convert;
   std::string       m_video_codec_name;
 
   bool              m_deinterlace;
   EDEINTERLACEMODE  m_deinterlace_request;
   bool              m_hdmi_clock_sync;
-  uint32_t          m_history_valid_pts;
   ResolutionUpdateCallBackFn m_res_callback;
   void              *m_res_ctx;
   bool              m_submitted_eos;
+  bool              m_failed_eos;
   OMX_DISPLAYTRANSFORMTYPE m_transform;
   bool              m_settings_changed;
-  bool NaluFormatStartCodes(enum CodecID codec, uint8_t *in_extradata, int in_extrasize);
+  static bool NaluFormatStartCodes(enum AVCodecID codec, uint8_t *in_extradata, int in_extrasize);
+  CCriticalSection m_critSection;
 };
 
 #endif

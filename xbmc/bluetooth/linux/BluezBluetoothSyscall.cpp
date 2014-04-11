@@ -26,6 +26,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 
 #ifdef HAS_DBUS
 #include "DBusUtil.h"
@@ -154,13 +155,13 @@ void CBluezBluetoothAgent::RequestPinCode(std::vector<CVariant> &args)
   switch (device.GetDeviceType())
   {
   case IBluetoothDevice::DEVICE_TYPE_KEYBOARD:
-    key.Format("%06u", rand() % 1000000);
+    key = StringUtils::Format("%06u", rand() % 1000000);
     Reply(key);
     CGUIDialogOK::ShowAndGetInput(key, 16507, 16508, "");
     break;
   case IBluetoothDevice::DEVICE_TYPE_COMPUTER:
   case IBluetoothDevice::DEVICE_TYPE_PHONE:
-    key.Format("%06u", rand() % 1000000);
+    key = StringUtils::Format("%06u", rand() % 1000000);
     Reply(key);
     CGUIDialogOK::ShowAndGetInput(key, 16507, "", "");
     break;

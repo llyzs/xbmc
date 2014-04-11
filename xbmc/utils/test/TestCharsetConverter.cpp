@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 
 #include "settings/Settings.h"
 #include "utils/CharsetConverter.h"
+#include "utils/StdString.h"
+#include "utils/Utf8Utils.h"
 
 #include "gtest/gtest.h"
 
@@ -134,12 +136,14 @@ TEST_F(TestCharsetConverter, utf16LEtoW)
   EXPECT_STREQ(refstrw1.c_str(), varstrw1.c_str());
 }
 
-TEST_F(TestCharsetConverter, subtitleCharsetToW)
+TEST_F(TestCharsetConverter, subtitleCharsetToUtf8)
 {
-  refstrw1 = L"test subtitleCharsetToW";
-  varstrw1.clear();
-  g_charsetConverter.subtitleCharsetToW(refstrw1, varstrw1);
-  EXPECT_STREQ(refstrw1.c_str(), varstrw1.c_str());
+  refstra1 = "test subtitleCharsetToW";
+  varstra1.clear();
+  g_charsetConverter.subtitleCharsetToUtf8(refstra1, varstra1);
+
+  /* Assign refstra1 to refstrw1 so that we can compare */
+  EXPECT_STREQ(refstra1.c_str(), varstra1.c_str());
 }
 
 TEST_F(TestCharsetConverter, utf8ToStringCharset_1)
@@ -200,35 +204,33 @@ TEST_F(TestCharsetConverter, stringCharsetToUtf8)
 {
   refstra1 = "ｔｅｓｔ＿ｓｔｒｉｎｇＣｈａｒｓｅｔＴｏＵｔｆ８";
   varstra1.clear();
-  g_charsetConverter.stringCharsetToUtf8("UTF-16LE", refutf16LE3, varstra1);
+  g_charsetConverter.ToUtf8("UTF-16LE", refutf16LE3, varstra1);
   EXPECT_STREQ(refstra1.c_str(), varstra1.c_str());
 }
 
 TEST_F(TestCharsetConverter, isValidUtf8_1)
 {
   varstra1.clear();
-  g_charsetConverter.stringCharsetToUtf8("UTF-16LE", refutf16LE3, varstra1);
-  EXPECT_TRUE(g_charsetConverter.isValidUtf8(varstra1.c_str()));
+  g_charsetConverter.ToUtf8("UTF-16LE", refutf16LE3, varstra1);
+  EXPECT_TRUE(CUtf8Utils::isValidUtf8(varstra1.c_str()));
 }
 
 TEST_F(TestCharsetConverter, isValidUtf8_2)
 {
   refstr1 = refutf16LE3;
-  EXPECT_FALSE(g_charsetConverter.isValidUtf8(refstr1));
+  EXPECT_FALSE(CUtf8Utils::isValidUtf8(refstr1));
 }
 
 TEST_F(TestCharsetConverter, isValidUtf8_3)
 {
   varstra1.clear();
-  g_charsetConverter.stringCharsetToUtf8("UTF-16LE", refutf16LE3, varstra1);
-  EXPECT_TRUE(g_charsetConverter.isValidUtf8(varstra1.c_str(),
-                                             varstra1.length() + 1));
+  g_charsetConverter.ToUtf8("UTF-16LE", refutf16LE3, varstra1);
+  EXPECT_TRUE(CUtf8Utils::isValidUtf8(varstra1.c_str()));
 }
 
 TEST_F(TestCharsetConverter, isValidUtf8_4)
 {
-  EXPECT_FALSE(g_charsetConverter.isValidUtf8(refutf16LE3,
-                                              sizeof(refutf16LE3)));
+  EXPECT_FALSE(CUtf8Utils::isValidUtf8(refutf16LE3));
 }
 
 /* TODO: Resolve correct input/output for this function */
@@ -317,10 +319,10 @@ TEST_F(TestCharsetConverter, getCharsetLabels)
   reflabels.push_back("Korean");
   reflabels.push_back("Hong Kong (Big5-HKSCS)");
 
-  std::vector<CStdString> varlabels = g_charsetConverter.getCharsetLabels();
+  std::vector<std::string> varlabels = g_charsetConverter.getCharsetLabels();
   ASSERT_EQ(reflabels.size(), varlabels.size());
 
-  std::vector<CStdString>::iterator it;
+  std::vector<std::string>::iterator it;
   for (it = varlabels.begin(); it < varlabels.end(); it++)
   {
     EXPECT_STREQ((reflabels.at(it - varlabels.begin())).c_str(), (*it).c_str());
@@ -345,12 +347,6 @@ TEST_F(TestCharsetConverter, getCharsetNameByLabel)
   varstr.clear();
   varstr = g_charsetConverter.getCharsetNameByLabel("Bogus");
   EXPECT_STREQ("", varstr.c_str());
-}
-
-TEST_F(TestCharsetConverter, isBidiCharset)
-{
-  EXPECT_TRUE(g_charsetConverter.isBidiCharset("ISO-8859-6"));
-  EXPECT_FALSE(g_charsetConverter.isBidiCharset("Bogus"));
 }
 
 TEST_F(TestCharsetConverter, unknownToUTF8_1)

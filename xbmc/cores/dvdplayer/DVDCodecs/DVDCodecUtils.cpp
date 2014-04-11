@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -195,11 +195,10 @@ DVDVideoPicture* CDVDCodecUtils::ConvertToNV12Picture(DVDVideoPicture *pSrc)
       }
 
       //copy chroma
-      uint8_t *s_u, *s_v, *d_uv;
       for (int y = 0; y < (int)pSrc->iHeight/2; y++) {
-        s_u = pSrc->data[1] + (y * pSrc->iLineSize[1]);
-        s_v = pSrc->data[2] + (y * pSrc->iLineSize[2]);
-        d_uv = pPicture->data[1] + (y * pPicture->iLineSize[1]);
+        uint8_t *s_u = pSrc->data[1] + (y * pSrc->iLineSize[1]);
+        uint8_t *s_v = pSrc->data[2] + (y * pSrc->iLineSize[2]);
+        uint8_t *d_uv = pPicture->data[1] + (y * pPicture->iLineSize[1]);
         for (int x = 0; x < (int)pSrc->iWidth/2; x++) {
           *d_uv++ = *s_u++;
           *d_uv++ = *s_v++;

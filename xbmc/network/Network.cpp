@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@
 #include "utils/log.h"
 #ifdef TARGET_WINDOWS
 #include "utils/SystemInfo.h"
+#include "win32/WIN32Util.h"
+#include "utils/CharsetConverter.h"
 #endif
-
-using namespace std;
 
 /* slightly modified in_ether taken from the etherboot project (http://sourceforge.net/projects/etherboot) */
 bool in_ether (const char *bufp, unsigned char *addr)
@@ -89,6 +89,46 @@ bool in_ether (const char *bufp, unsigned char *addr)
   return true;
 }
 
+int NetworkAccessPoint::getQuality() const
+{
+  // Cisco dBm lookup table (partially nonlinear)
+  // Source: "Converting Signal Strength Percentage to dBm Values, 2002"
+  int quality;
+  if (m_dBm >= -10) quality = 100;
+  else if (m_dBm >= -20) quality = 85 + (m_dBm + 20);
+  else if (m_dBm >= -30) quality = 77 + (m_dBm + 30);
+  else if (m_dBm >= -60) quality = 48 + (m_dBm + 60);
+  else if (m_dBm >= -98) quality = 13 + (m_dBm + 98);
+  else if (m_dBm >= -112) quality = 1 + (m_dBm + 112);
+  else quality = 0;
+  return quality;
+}
+
+int NetworkAccessPoint::FreqToChannel(float frequency)
+{
+  int IEEE80211Freq[] = {2412, 2417, 2422, 2427, 2432,
+                         2437, 2442, 2447, 2452, 2457,
+                         2462, 2467, 2472, 2484,
+                         5180, 5200, 5210, 5220, 5240, 5250,
+                         5260, 5280, 5290, 5300, 5320,
+                         5745, 5760, 5765, 5785, 5800, 5805, 5825};
+  int IEEE80211Ch[] =   {   1,    2,    3,    4,    5,
+                            6,    7,    8,    9,   10,
+                           11,   12,   13,   14,
+                           36,   40,   42,   44,   48,   50,
+                           52,   56,   58,   60,   64,
+                          149,  152,  153,  157,  160,  161,  165};
+  // Round frequency to the nearest MHz
+  int mod_chan = (int)(frequency / 1000000 + 0.5f);
+  for (unsigned int i = 0; i < sizeof(IEEE80211Freq) / sizeof(int); ++i)
+  {
+    if (IEEE80211Freq[i] == mod_chan)
+      return IEEE80211Ch[i];
+  }
+  return 0; // unknown
+}
+
+
 CNetwork::CNetwork()
 {
   CApplicationMessenger::Get().NetworkMessage(SERVICES_UP, 0);
@@ -123,14 +163,20 @@ CStdString CNetwork::GetHostName(void)
   char hostName[128];
   if (gethostname(hostName, sizeof(hostName)))
     return CStdString("unknown");
-  else
-    return CStdString(hostName);
+
+  std::string hostStr;
+#ifdef TARGET_WINDOWS
+  g_charsetConverter.systemToUtf8(hostName, hostStr);
+#else
+  hostStr = hostName;
+#endif
+  return hostStr;
 }
 
 CNetworkInterface* CNetwork::GetFirstConnectedInterface()
 {
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
@@ -146,8 +192,8 @@ bool CNetwork::HasInterfaceForIP(unsigned long address)
 {
    unsigned long subnet;
    unsigned long local;
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
@@ -173,7 +219,7 @@ bool CNetwork::IsAvailable(bool wait /*= false*/)
     //       wait for 5 seconds here.
   }
 
-  vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+  std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
   return (ifaces.size() != 0);
 }
 
@@ -184,8 +230,8 @@ bool CNetwork::IsConnected()
 
 CNetworkInterface* CNetwork::GetInterfaceByName(CStdString& name)
 {
-   vector<CNetworkInterface*>& ifaces = GetInterfaceList();
-   vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
+   std::vector<CNetworkInterface*>& ifaces = GetInterfaceList();
+   std::vector<CNetworkInterface*>::const_iterator iter = ifaces.begin();
    while (iter != ifaces.end())
    {
       CNetworkInterface* iface = *iter;
@@ -276,7 +322,7 @@ bool CNetwork::WakeOnLan(const char* mac)
 static const char* ConnectHostPort(SOCKET soc, const struct sockaddr_in& addr, struct timeval& timeOut, bool tryRead)
 {
   // set non-blocking
-#ifdef _MSC_VER
+#ifdef TARGET_WINDOWS
   u_long nonblocking = 1;
   int result = ioctlsocket(soc, FIONBIO, &nonblocking);
 #else
@@ -290,7 +336,7 @@ static const char* ConnectHostPort(SOCKET soc, const struct sockaddr_in& addr, s
 
   if (result < 0)
   {
-#ifdef _MSC_VER
+#ifdef TARGET_WINDOWS
     if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
     if (errno != EINPROGRESS)
@@ -377,8 +423,8 @@ bool CNetwork::PingHost(unsigned long ipaddr, unsigned short port, unsigned int 
 
   if (err_msg && *err_msg)
   {
-#ifdef _MSC_VER
-    CStdString sock_err = WUSysMsg(WSAGetLastError());
+#ifdef TARGET_WINDOWS
+    CStdString sock_err = CWIN32Util::WUSysMsg(WSAGetLastError());
 #else
     CStdString sock_err = strerror(errno);
 #endif
@@ -395,16 +441,7 @@ bool CNetwork::PingHost(unsigned long ipaddr, unsigned short port, unsigned int 
 int CreateTCPServerSocket(const int port, const bool bindLocal, const int backlog, const char *callerName)
 {
   struct sockaddr_storage addr;
-  struct sockaddr_in6 *s6;
-  struct sockaddr_in  *s4;
-  int    sock;
-  bool   v4_fallback = false;
-#ifdef TARGET_WINDOWS
-  // Windows XP and earlier don't support the IPV6_V6ONLY socket option
-  // so always fall back to IPv4 directly to keep old functionality
-  if (CSysInfo::GetWindowsVersion() <= CSysInfo::WindowsVersionWinXP)
-    v4_fallback = true;
-#endif
+  int    sock = -1;
 
 #ifdef WINSOCK_VERSION
   int yes = 1;
@@ -414,65 +451,65 @@ int CreateTCPServerSocket(const int port, const bool bindLocal, const int backlo
   unsigned int no = 0;
 #endif
   
-  memset(&addr, 0, sizeof(addr));
-  
-  if (!v4_fallback &&
-     (sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0)
+  // first try ipv6
+  if ((sock = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP)) >= 0)
   {
     // in case we're on ipv6, make sure the socket is dual stacked
     if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&no, sizeof(no)) < 0)
     {
 #ifdef _MSC_VER
-      CStdString sock_err = WUSysMsg(WSAGetLastError());
+      CStdString sock_err = CWIN32Util::WUSysMsg(WSAGetLastError());
 #else
       CStdString sock_err = strerror(errno);
 #endif
       CLog::Log(LOGWARNING, "%s Server: Only IPv6 supported (%s)", callerName, sock_err.c_str());
     }
-  }
-  else
-  {
-    v4_fallback = true;
-    sock = socket(PF_INET, SOCK_STREAM, 0);
-  }
-  
-  if (sock == INVALID_SOCKET)
-  {
-    CLog::Log(LOGERROR, "%s Server: Failed to create serversocket", callerName);
-    return INVALID_SOCKET;
-  }
 
-  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
-  
-  if (v4_fallback)
-  {
-    addr.ss_family = AF_INET;
-    s4 = (struct sockaddr_in *) &addr;
-    s4->sin_port = htons(port);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
 
-    if (bindLocal)
-      s4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    else
-      s4->sin_addr.s_addr = htonl(INADDR_ANY);
-  }
-  else
-  {
+    struct sockaddr_in6 *s6;
+    memset(&addr, 0, sizeof(addr));
     addr.ss_family = AF_INET6;
     s6 = (struct sockaddr_in6 *) &addr;
     s6->sin6_port = htons(port);
-
     if (bindLocal)
       s6->sin6_addr = in6addr_loopback;
     else
       s6->sin6_addr = in6addr_any;
-  }
 
-  if (::bind( sock, (struct sockaddr *) &addr,
-            (addr.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6) :
-                                           sizeof(struct sockaddr_in)  ) < 0)
+    if (bind( sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in6)) < 0)
+    {
+      closesocket(sock);
+      sock = -1;
+      CLog::Log(LOGDEBUG, "%s Server: Failed to bind ipv6 serversocket, trying ipv4", callerName);
+    }
+  }
+  
+  // ipv4 fallback
+  if (sock < 0 && (sock = socket(PF_INET, SOCK_STREAM, 0)) >= 0)
   {
-    closesocket(sock);
-    CLog::Log(LOGERROR, "%s Server: Failed to bind serversocket", callerName);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
+
+    struct sockaddr_in  *s4;
+    memset(&addr, 0, sizeof(addr));
+    addr.ss_family = AF_INET;
+    s4 = (struct sockaddr_in *) &addr;
+    s4->sin_port = htons(port);
+    if (bindLocal)
+      s4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    else
+      s4->sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind( sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) < 0)
+    {
+      closesocket(sock);
+      CLog::Log(LOGERROR, "%s Server: Failed to bind ipv4 serversocket", callerName);
+      return INVALID_SOCKET;
+    }
+  }
+  else if (sock < 0)
+  {
+    CLog::Log(LOGERROR, "%s Server: Failed to create serversocket", callerName);
     return INVALID_SOCKET;
   }
 

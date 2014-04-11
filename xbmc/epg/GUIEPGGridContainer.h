@@ -2,7 +2,7 @@
 
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,11 +34,13 @@ namespace PVR
 namespace EPG
 {
   #define MAXCHANNELS 20
-  #define MAXBLOCKS   2304 //! !!_EIGHT_!! days of 5 minute blocks
+  #define MAXBLOCKS   (16 * 24 * 60 / 5) //! 16 days of 5 minute blocks (14 days for upcoming data + 1 day for past data + 1 day for fillers)
 
   struct GridItemsPtr
   {
     CGUIListItemPtr item;
+    float originWidth;
+    float originHeight;
     float width;
     float height;
   };
@@ -50,7 +52,7 @@ namespace EPG
   public:
     CGUIEPGGridContainer(int parentID, int controlID, float posX, float posY, float width, float height,
                          ORIENTATION orientation, int scrollTime, int preloadItems, int minutesPerPage,
-                         int rulerUnit);
+                         int rulerUnit, const CTextureInfo& progressIndicatorTexture);
     virtual ~CGUIEPGGridContainer(void);
     virtual CGUIEPGGridContainer *Clone() const { return new CGUIEPGGridContainer(*this); };
 
@@ -92,6 +94,7 @@ namespace EPG
 
     void GoToBegin();
     void GoToEnd();
+    void GoToNow();
     void SetStartEnd(CDateTime start, CDateTime end);
     void SetChannel(const PVR::CPVRChannel &channel);
     void SetChannel(const CStdString &channel);
@@ -136,9 +139,11 @@ namespace EPG
     void ProcessChannels(unsigned int currentTime, CDirtyRegionList &dirtyregions);
     void ProcessRuler(unsigned int currentTime, CDirtyRegionList &dirtyregions);
     void ProcessProgrammeGrid(unsigned int currentTime, CDirtyRegionList &dirtyregions);
+    void ProcessProgressIndicator(unsigned int currentTime, CDirtyRegionList &dirtyregions);
     void RenderChannels();
     void RenderRuler();
     void RenderProgrammeGrid();
+    void RenderProgressIndicator();
 
     CPoint m_renderOffset; ///< \brief render offset of the first item in the list \sa SetRenderOffset
 
@@ -212,7 +217,9 @@ namespace EPG
     CDateTime m_gridStart;
     CDateTime m_gridEnd;
 
-    struct GridItemsPtr **m_gridIndex;
+    CGUITexture m_guiProgressIndicatorTexture;
+
+    std::vector<std::vector<GridItemsPtr> > m_gridIndex;
     GridItemsPtr *m_item;
     CGUIListItem *m_lastItem;
     CGUIListItem *m_lastChannel;

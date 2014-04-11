@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/LegacyPathTranslation.h"
 #include "utils/log.h"
+#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace XFILE;
@@ -58,7 +59,7 @@ bool CMusicDatabaseDirectory::GetDirectory(const CStdString& strPath, CFileItemL
     if (item->m_bIsFolder && !item->HasIcon() && !item->HasArt("thumb"))
     {
       CStdString strImage = GetIcon(item->GetPath());
-      if (!strImage.IsEmpty() && g_TextureManager.HasTexture(strImage))
+      if (!strImage.empty() && g_TextureManager.HasTexture(strImage))
         item->SetIconImage(strImage);
     }
   }
@@ -126,14 +127,13 @@ void CMusicDatabaseDirectory::ClearDirectoryCache(const CStdString& strDirectory
   Crc32 crc;
   crc.ComputeFromLowerCase(path);
 
-  CStdString strFileName;
-  strFileName.Format("special://temp/%08x.fi", (unsigned __int32) crc);
+  CStdString strFileName = StringUtils::Format("special://temp/%08x.fi", (unsigned __int32) crc);
   CFile::Delete(strFileName);
 }
 
 bool CMusicDatabaseDirectory::IsAllItem(const CStdString& strDirectory)
 {
-  if (strDirectory.Right(4).Equals("/-1/"))
+  if (StringUtils::EndsWith(strDirectory, "/-1/"))
     return true;
   return false;
 }
@@ -162,7 +162,7 @@ bool CMusicDatabaseDirectory::GetLabel(const CStdString& strDirectory, CStdStrin
   // get artist
   if (params.GetArtistId() >= 0)
   {
-    if (!strLabel.IsEmpty())
+    if (!strLabel.empty())
       strLabel += " / ";
     strLabel += musicdatabase.GetArtistById(params.GetArtistId());
   }
@@ -170,12 +170,12 @@ bool CMusicDatabaseDirectory::GetLabel(const CStdString& strDirectory, CStdStrin
   // get album
   if (params.GetAlbumId() >= 0)
   {
-    if (!strLabel.IsEmpty())
+    if (!strLabel.empty())
       strLabel += " / ";
     strLabel += musicdatabase.GetAlbumById(params.GetAlbumId());
   }
 
-  if (strLabel.IsEmpty())
+  if (strLabel.empty())
   {
     switch (pNode->GetChildType())
     {

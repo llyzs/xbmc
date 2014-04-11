@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -172,8 +172,7 @@ bool CGUIDialogPVRGuideInfo::OnClickButtonSwitch(CGUIMessage &message)
     if (!m_progItem->GetEPGInfoTag()->HasPVRChannel() ||
         (ret = g_application.PlayFile(CFileItem(*m_progItem->GetEPGInfoTag()->ChannelTag()))) == PLAYBACK_FAIL)
     {
-      CStdString msg;
-      msg.Format(g_localizeStrings.Get(19035).c_str(), g_localizeStrings.Get(19029).c_str()); // Channel could not be played. Check the log for details.
+      CStdString msg = StringUtils::Format(g_localizeStrings.Get(19035).c_str(), g_localizeStrings.Get(19029).c_str()); // Channel could not be played. Check the log for details.
       CGUIDialogOK::ShowAndGetInput(19033, 0, msg, 0);
     }
     else if (ret == PLAYBACK_OK)
@@ -189,10 +188,6 @@ bool CGUIDialogPVRGuideInfo::OnMessage(CGUIMessage& message)
 {
   switch (message.GetMessage())
   {
-  case GUI_MSG_WINDOW_INIT:
-    CGUIDialog::OnMessage(message);
-    Update();
-    return true;
   case GUI_MSG_CLICKED:
     return OnClickButtonOK(message) ||
            OnClickButtonRecord(message) ||
@@ -212,8 +207,10 @@ CFileItemPtr CGUIDialogPVRGuideInfo::GetCurrentListItem(int offset)
   return m_progItem;
 }
 
-void CGUIDialogPVRGuideInfo::Update()
+void CGUIDialogPVRGuideInfo::OnInitWindow()
 {
+  CGUIDialog::OnInitWindow();
+
   const CEpgInfoTag *tag = m_progItem->GetEPGInfoTag();
   if (!tag)
   {

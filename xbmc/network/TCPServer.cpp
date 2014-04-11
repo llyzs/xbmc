@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -526,7 +526,7 @@ void CTCPServer::CTCPClient::Send(const char *data, unsigned int size)
   do
   {
     CSingleLock lock (m_critSection);
-    sent += send(m_socket, data, size - sent, 0);
+    sent += send(m_socket, data + sent, size - sent, 0);
   } while (sent < size);
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2011-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ public:
   virtual ~COMXPlayer();
   
   virtual bool  OpenFile(const CFileItem &file, const CPlayerOptions &options);
-  virtual bool  CloseFile();
+  virtual bool  CloseFile(bool reopen = false);
   virtual bool  IsPlaying() const;
   virtual void  Pause();
   virtual bool  IsPaused() const;
@@ -177,7 +177,7 @@ public:
   virtual bool  HasAudio() const;
   virtual bool  IsPassthrough() const;
   virtual bool  CanSeek();
-  virtual void Seek(bool bPlus, bool bLargeStep);
+  virtual void Seek(bool bPlus, bool bLargeStep, bool bChapterOverride);
   virtual bool  SeekScene(bool bPlus = true);
   virtual void SeekPercentage(float iPercent);
   virtual float GetPercentage();
@@ -185,10 +185,10 @@ public:
 
   virtual void RegisterAudioCallback(IAudioCallback* pCallback) { m_omxPlayerAudio.RegisterAudioCallback(pCallback); }
   virtual void UnRegisterAudioCallback()                        { m_omxPlayerAudio.UnRegisterAudioCallback(); }
-  virtual void SetVolume(float nVolume);
-  virtual void SetMute(bool bOnOff);
+  virtual void SetVolume(float nVolume)                         { m_omxPlayerAudio.SetVolume(nVolume); }
+  virtual void SetMute(bool bOnOff)                             { m_omxPlayerAudio.SetMute(bOnOff); }
+  virtual void SetDynamicRangeCompression(long drc)             { m_omxPlayerAudio.SetDynamicRangeCompression(drc); }
   virtual bool ControlsVolume() {return true;}
-  virtual void SetDynamicRangeCompression(long drc)              {}
   virtual void GetAudioInfo(CStdString &strAudioInfo);
   virtual void GetVideoInfo(CStdString &strVideoInfo);
   virtual void GetGeneralInfo(CStdString &strVideoInfo);
@@ -230,12 +230,8 @@ public:
   virtual int GetSourceBitrate();
   virtual void GetVideoStreamInfo(SPlayerVideoStreamInfo &info);
 
-  virtual int GetPictureWidth();
-  virtual int GetPictureHeight();
   virtual bool GetStreamDetails(CStreamDetails &details);
   virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info);
-
-  virtual bool GetCurrentSubtitle(CStdString& strSubtitle);
 
   virtual CStdString GetPlayerState();
   virtual bool SetPlayerState(CStdString state);
@@ -281,6 +277,12 @@ protected:
   bool OpenAudioStream(int iStream, int source, bool reset = true);
   bool OpenVideoStream(int iStream, int source, bool reset = true);
   bool OpenSubtitleStream(int iStream, int source);
+
+  /** \brief Switches forced subtitles to forced subtitles matching the language of the current audio track.
+  *          If these are not available, subtitles are disabled.
+  *   \return true if the subtitles were changed, false otherwise.
+  */
+  bool AdaptForcedSubtitles();
   bool OpenTeletextStream(int iStream, int source);
   bool CloseAudioStream(bool bWaitForBuffers);
   bool CloseVideoStream(bool bWaitForBuffers);
@@ -296,6 +298,7 @@ protected:
   bool ShowPVRChannelInfo();
 
   int  AddSubtitleFile(const std::string& filename, const std::string& subfilename = "", CDemuxStream::EFlags flags = CDemuxStream::FLAG_NONE);
+  void SetSubtitleVisibleInternal(bool bVisible);
 
   /**
    * one of the DVD_PLAYSPEED defines
@@ -345,7 +348,7 @@ protected:
   std::string  m_mimetype;  // hold a hint to what content file contains (mime type)
   ECacheState  m_caching;
   CFileItem    m_item;
-  unsigned int m_iChannelEntryTimeOut;
+  XbmcThreads::EndTime m_ChannelEntryTimeOut;
 
 
   COMXCurrentStream m_CurrentAudio;
@@ -372,11 +375,14 @@ protected:
   CDVDPlayerSubtitle m_dvdPlayerSubtitle; // subtitle part
   CDVDTeletextData m_dvdPlayerTeletext; // teletext part
 
-  OMXClock m_av_clock;                // master clock
+  CDVDClock m_clock;                // master clock
+  OMXClock m_av_clock;
 
-  float m_current_volume;
-  bool m_current_mute;
-  bool m_change_volume;
+  bool m_stepped;
+  int m_video_fifo;
+  int m_audio_fifo;
+  double m_last_check_time;         // we periodically check for gpu underrun
+  double m_stamp;                   // last media stamp
 
   CDVDOverlayContainer m_overlayContainer;
 
@@ -502,4 +508,6 @@ protected:
 
   bool m_HasVideo;
   bool m_HasAudio;
+
+  bool m_DemuxerPausePending;
 };

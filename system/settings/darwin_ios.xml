@@ -3,13 +3,17 @@
   <section id="videos">
     <category id="videoplayer">
       <group id="2">
-        <setting id="videoplayer.hqscalers">
-          <visible>false</visible>
-        </setting>
         <setting id="videoplayer.adjustrefreshrate">
           <visible>false</visible>
         </setting>
         <setting id="videoplayer.pauseafterrefreshchange">
+          <visible>false</visible>
+        </setting>
+      </group>
+    </category>
+    <category id="videoacceleration">
+      <group id="1">
+        <setting id="videoplayer.hqscalers">
           <visible>false</visible>
         </setting>
       </group>
@@ -33,28 +37,13 @@
     </category>
     <category id="audiooutput">
       <group id="1">
-        <setting id="audiooutput.ac3passthrough">
-          <visible>IsAppleTV2</visible>
-        </setting>
-        <setting id="audiooutput.dtspassthrough">
-          <visible>IsAppleTV2</visible>
-        </setting>
-        <setting id="audiooutput.multichannellpcm">
-          <visible>false</visible>
-        </setting>
-        <setting id="audiooutput.truehdpassthrough">
-          <visible>false</visible>
-        </setting>
-        <setting id="audiooutput.dtshdpassthrough">
-          <visible>false</visible>
-        </setting>
-      </group>
-      <group id="2">
-        <setting id="audiooutput.audiodevice">
+        <setting id="audiooutput.audiodevice" type="string">
           <default>Default</default>
           <visible>false</visible>
         </setting>
-        <setting id="audiooutput.passthroughdevice">
+      </group>
+      <group id="3">
+        <setting id="audiooutput.passthroughdevice" type="string">
           <default>Default</default>
           <visible>false</visible>
         </setting>

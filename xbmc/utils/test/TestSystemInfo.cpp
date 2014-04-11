@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,14 +48,14 @@ protected:
   }
 };
 
-#if defined(_LINUX) && !defined(TARGET_DARWIN) && !defined(__FreeBSD__)
+#if defined(TARGET_LINUX)
 TEST_F(TestSystemInfo, GetLinuxDistro)
 {
   std::cout << "GetLinuxDistro(): " << g_sysinfo.GetLinuxDistro() << std::endl;
 }
 #endif
 
-#ifdef _LINUX
+#ifdef TARGET_POSIX
 TEST_F(TestSystemInfo, GetUnameVersion)
 {
   std::cout << "GetUnameVersion(): " << g_sysinfo.GetUnameVersion() << std::endl;

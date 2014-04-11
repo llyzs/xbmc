@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include "Setting.h"
+#include "settings/lib/Setting.h"
 
 class CSettingPath : public CSettingString
 {
@@ -29,6 +29,8 @@ public:
   CSettingPath(const std::string &id, CSettingsManager *settingsManager = NULL);
   CSettingPath(const std::string &id, const CSettingPath &setting);
   virtual ~CSettingPath() { }
+
+  virtual CSetting* Clone(const std::string &id) const;
 
   virtual bool Deserialize(const TiXmlNode *node, bool update = false);
   virtual bool SetValue(const std::string &value);

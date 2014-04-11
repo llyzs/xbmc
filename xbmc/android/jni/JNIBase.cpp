@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,8 +17,12 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+
 #include "JNIBase.h"
+
 using namespace jni;
+int CJNIBase::m_sdk_version = -1;
+
 CJNIBase::CJNIBase(std::string classname)
 {
   m_className = classname;
@@ -35,4 +39,14 @@ CJNIBase::~CJNIBase()
 {
   if(!m_object)
     return;
+}
+
+void CJNIBase::SetSDKVersion(int version)
+{
+  m_sdk_version = version;
+}
+
+int CJNIBase::GetSDKVersion()
+{
+  return m_sdk_version;
 }

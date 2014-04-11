@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,15 +26,18 @@
 #include "threads/CriticalSection.h"
 #include "video/VideoReferenceClock.h"
 #include "utils/MathUtils.h"
+#include "threads/Atomics.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
+#include "utils/StringUtils.h"
 
 #include "Application.h"
 #include "ApplicationMessenger.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
+#include "guilib/GUIFontManager.h"
 
 #if defined(HAS_GL)
   #include "LinuxRendererGL.h"
@@ -86,17 +89,20 @@ private:
   CCriticalSection &m_owned;
 };
 
+static void requeue(std::deque<int> &trg, std::deque<int> &src)
+{
+  trg.push_back(src.front());
+  src.pop_front();
+}
+
 CXBMCRenderManager::CXBMCRenderManager()
 {
   m_pRenderer = NULL;
   m_bIsStarted = false;
 
-  m_presentfield = FS_NONE;
-  m_presenttime = 0;
   m_presentstep = PRESENT_IDLE;
   m_rendermethod = 0;
   m_presentsource = 0;
-  m_presentmethod = PRESENT_METHOD_SINGLE;
   m_bReconfigured = false;
   m_hasCaptures = false;
   m_displayLatency = 0.0f;
@@ -105,9 +111,8 @@ CXBMCRenderManager::CXBMCRenderManager()
   memset(&m_errorbuff, 0, ERRORBUFFSIZE);
   m_errorindex = 0;
   m_QueueSize   = 2;
-  m_QueueRender = 0;
-  m_QueueOutput = 0;
   m_QueueSkip   = 0;
+  m_format      = RENDER_FMT_NONE;
 }
 
 CXBMCRenderManager::~CXBMCRenderManager()
@@ -162,14 +167,6 @@ void CXBMCRenderManager::WaitPresentTime(double presenttime)
     return;
   }
 
-  bool ismaster = CDVDClock::IsMasterClock();
-
-  //the videoreferenceclock updates its clock on every vertical blank
-  //we want every frame's presenttime to end up in the middle of two vblanks
-  //if CDVDPlayerAudio is the master clock, we add a correction to the presenttime
-  if (ismaster)
-    presenttime += m_presentcorr * frametime;
-
   double clock     = CDVDClock::WaitAbsoluteClock(presenttime * DVD_TIME_BASE) / DVD_TIME_BASE;
   double target    = 0.5;
   double error     = ( clock - presenttime ) / frametime - target;
@@ -199,20 +196,11 @@ void CXBMCRenderManager::WaitPresentTime(double presenttime)
   avgerror /= ERRORBUFFSIZE;
 
 
-  //if CDVDPlayerAudio is not the master clock, we change the clock speed slightly
+  //we change the clock speed slightly
   //to make every frame's presenttime end up in the middle of two vblanks
-  if (!ismaster)
-  {
-    //integral correction, clamp to -0.5:0.5 range
-    m_presentcorr = std::max(std::min(m_presentcorr + avgerror * 0.01, 0.1), -0.1);
-    g_VideoReferenceClock.SetFineAdjust(1.0 - avgerror * 0.01 - m_presentcorr * 0.01);
-  }
-  else
-  {
-    //integral correction, wrap to -0.5:0.5 range
-    m_presentcorr = wrap(m_presentcorr + avgerror * 0.01, target - 1.0, target);
-    g_VideoReferenceClock.SetFineAdjust(1.0);
-  }
+  //integral correction, clamp to -0.5:0.5 range
+  m_presentcorr = std::max(std::min(m_presentcorr + avgerror * 0.01, 0.1), -0.1);
+  g_VideoReferenceClock.SetFineAdjust(1.0 - avgerror * 0.01 - m_presentcorr * 0.01);
 
   //printf("%f %f % 2.0f%% % f % f\n", presenttime, clock, m_presentcorr * 100, error, error_org);
 }
@@ -224,11 +212,10 @@ CStdString CXBMCRenderManager::GetVSyncState()
     avgerror += m_errorbuff[i];
   avgerror /= ERRORBUFFSIZE;
 
-  CStdString state;
-  state.Format("sync:%+3d%% avg:%3d%% error:%2d%%"
-              ,     MathUtils::round_int(m_presentcorr * 100)
-              ,     MathUtils::round_int(avgerror      * 100)
-              , abs(MathUtils::round_int(m_presenterr  * 100)));
+  CStdString state = StringUtils::Format("sync:%+3d%% avg:%3d%% error:%2d%%"
+                                         ,     MathUtils::round_int(m_presentcorr * 100)
+                                         ,     MathUtils::round_int(avgerror      * 100)
+                                         , abs(MathUtils::round_int(m_presenterr  * 100)));
   return state;
 }
 
@@ -268,8 +255,7 @@ bool CXBMCRenderManager::Configure(unsigned int width, unsigned int height, unsi
       lock.Enter();
     }
     lock2.Enter();
-    if( format & RENDER_FMT_BYPASS )
-      m_presentmethod = PRESENT_METHOD_BYPASS;
+    m_format = format;
 
     int processor = m_pRenderer->GetProcessorSize();
     if(processor)
@@ -287,13 +273,20 @@ bool CXBMCRenderManager::Configure(unsigned int width, unsigned int height, unsi
 
     m_pRenderer->SetBufferSize(m_QueueSize);
     m_pRenderer->Update();
-    m_QueueRender = 0;
-    m_QueueOutput = 0;
+
+    m_queued.clear();
+    m_discard.clear();
+    m_free.clear();
+    m_presentsource = 0;
+    for (int i=1; i < m_QueueSize; i++)
+      m_free.push_back(i);
 
     m_bIsStarted = true;
     m_bReconfigured = true;
     m_presentstep = PRESENT_IDLE;
     m_presentevent.notifyAll();
+
+    m_firstFlipPage = false;  // tempfix
 
     CLog::Log(LOGDEBUG, "CXBMCRenderManager::Configure - %d", m_QueueSize);
   }
@@ -303,7 +296,7 @@ bool CXBMCRenderManager::Configure(unsigned int width, unsigned int height, unsi
 
 bool CXBMCRenderManager::RendererHandlesPresent() const
 {
-  return IsConfigured() && m_presentmethod != PRESENT_METHOD_BYPASS;
+  return IsConfigured() && (m_firstFlipPage || m_format != RENDER_FMT_BYPASS);
 }
 
 bool CXBMCRenderManager::IsConfigured() const
@@ -340,11 +333,12 @@ void CXBMCRenderManager::FrameMove()
 
     if (m_presentstep == PRESENT_FRAME2)
     {
-      int idx = GetNextRender();
-      if(idx >= 0)
+      if(!m_queued.empty())
       {
         double timestamp = GetPresentTime();
-        if(timestamp > m_presenttime + (m_Queue[idx].timestamp - m_presenttime) * 0.5)
+        SPresent& m = m_Queue[m_presentsource];
+        SPresent& q = m_Queue[m_queued.front()];
+        if(timestamp > m.timestamp + (q.timestamp - m.timestamp) * 0.5)
         {
           m_presentstep = PRESENT_READY;
           m_presentevent.notifyAll();
@@ -357,22 +351,19 @@ void CXBMCRenderManager::FrameMove()
 
     if(m_presentstep == PRESENT_FLIP)
     {
-      /* release all previous */
-      int count = 0;
-      while(m_QueueRender != m_presentsource)
-      {
-        m_pRenderer->ReleaseBuffer(m_QueueRender);
-        m_overlays.Release(m_QueueRender);
-        m_QueueRender = (m_QueueRender + 1) % m_QueueSize;
-        count++;
-      }
-
-      if(count > 1)
-        m_QueueSkip += count - 1;
-
       m_pRenderer->FlipPage(m_presentsource);
       m_presentstep = PRESENT_FRAME;
       m_presentevent.notifyAll();
+    }
+
+    /* release all previous */
+    for(std::deque<int>::iterator it = m_discard.begin(); it != m_discard.end(); )
+    {
+      // TODO check for fence
+      m_pRenderer->ReleaseBuffer(*it);
+      m_overlays.Release(*it);
+      m_free.push_back(*it);
+      it = m_discard.erase(it);
     }
   }
 }
@@ -380,15 +371,17 @@ void CXBMCRenderManager::FrameMove()
 void CXBMCRenderManager::FrameFinish()
 {
   /* wait for this present to be valid */
+  SPresent& m = m_Queue[m_presentsource];
+
   if(g_graphicsContext.IsFullScreenVideo())
-    WaitPresentTime(m_presenttime);
+    WaitPresentTime(m.timestamp);
 
   { CSingleLock lock(m_presentlock);
 
     if(m_presentstep == PRESENT_FRAME)
     {
-      if( m_presentmethod == PRESENT_METHOD_BOB
-      ||  m_presentmethod == PRESENT_METHOD_WEAVE)
+      if( m.presentmethod == PRESENT_METHOD_BOB
+      ||  m.presentmethod == PRESENT_METHOD_WEAVE)
         m_presentstep = PRESENT_FRAME2;
       else
         m_presentstep = PRESENT_IDLE;
@@ -399,7 +392,7 @@ void CXBMCRenderManager::FrameFinish()
 
     if(m_presentstep == PRESENT_IDLE)
     {
-      if(GetNextRender() >= 0)
+      if(!m_queued.empty())
         m_presentstep = PRESENT_READY;
     }
 
@@ -433,8 +426,6 @@ unsigned int CXBMCRenderManager::PreInit()
   UpdateDisplayLatency();
 
   m_QueueSize   = 2;
-  m_QueueRender = 0;
-  m_QueueOutput = 0;
   m_QueueSkip   = 0;
 
   return m_pRenderer->PreInit();
@@ -447,6 +438,8 @@ void CXBMCRenderManager::UnInit()
   m_bIsStarted = false;
 
   m_overlays.Flush();
+  g_fontManager.Unload("__subtitle__");
+  g_fontManager.Unload("__subtitleborder__");
 
   // free renderer resources.
   // TODO: we may also want to release the renderer here.
@@ -643,6 +636,8 @@ void CXBMCRenderManager::FlipPage(volatile bool& bStop, double timestamp /* = 0L
 
     if(!m_pRenderer) return;
 
+    m_firstFlipPage = true;              // tempfix
+
     EPRESENTMETHOD presentmethod;
 
     EDEINTERLACEMODE deinterlacemode = CMediaSettings::Get().GetCurrentVideoSettings().m_DeinterlaceMode;
@@ -690,13 +685,17 @@ void CXBMCRenderManager::FlipPage(volatile bool& bStop, double timestamp /* = 0L
 
     CSingleLock lock2(m_presentlock);
 
-    if(source < 0)
-      source = GetNextDecode();
+    if(m_free.empty())
+      return;
 
-    m_Queue[source].timestamp     = timestamp;
-    m_Queue[source].presentfield  = sync;
-    m_Queue[source].presentmethod = presentmethod;
-    m_QueueOutput = source;
+    if(source < 0)
+      source = m_free.front();
+
+    SPresent& m = m_Queue[source];
+    m.timestamp     = timestamp;
+    m.presentfield  = sync;
+    m.presentmethod = presentmethod;
+    requeue(m_queued, m_free);
 
     /* signal to any waiters to check state */
     if(m_presentstep == PRESENT_IDLE)
@@ -754,11 +753,13 @@ void CXBMCRenderManager::Render(bool clear, DWORD flags, DWORD alpha)
 {
   CSharedLock lock(m_sharedSection);
 
-  if( m_presentmethod == PRESENT_METHOD_BOB )
+  SPresent& m = m_Queue[m_presentsource];
+
+  if( m.presentmethod == PRESENT_METHOD_BOB )
     PresentFields(clear, flags, alpha);
-  else if( m_presentmethod == PRESENT_METHOD_WEAVE )
+  else if( m.presentmethod == PRESENT_METHOD_WEAVE )
     PresentFields(clear, flags | RENDER_FLAG_WEAVE, alpha);
-  else if( m_presentmethod == PRESENT_METHOD_BLEND )
+  else if( m.presentmethod == PRESENT_METHOD_BLEND )
     PresentBlend(clear, flags, alpha);
   else
     PresentSingle(clear, flags, alpha);
@@ -779,17 +780,18 @@ void CXBMCRenderManager::PresentSingle(bool clear, DWORD flags, DWORD alpha)
 void CXBMCRenderManager::PresentFields(bool clear, DWORD flags, DWORD alpha)
 {
   CSingleLock lock(g_graphicsContext);
+  SPresent& m = m_Queue[m_presentsource];
 
   if(m_presentstep == PRESENT_FRAME)
   {
-    if( m_presentfield == FS_BOT)
+    if( m.presentfield == FS_BOT)
       m_pRenderer->RenderUpdate(clear, flags | RENDER_FLAG_BOT | RENDER_FLAG_FIELD0, alpha);
     else
       m_pRenderer->RenderUpdate(clear, flags | RENDER_FLAG_TOP | RENDER_FLAG_FIELD0, alpha);
   }
   else
   {
-    if( m_presentfield == FS_TOP)
+    if( m.presentfield == FS_TOP)
       m_pRenderer->RenderUpdate(clear, flags | RENDER_FLAG_BOT | RENDER_FLAG_FIELD1, alpha);
     else
       m_pRenderer->RenderUpdate(clear, flags | RENDER_FLAG_TOP | RENDER_FLAG_FIELD1, alpha);
@@ -799,8 +801,9 @@ void CXBMCRenderManager::PresentFields(bool clear, DWORD flags, DWORD alpha)
 void CXBMCRenderManager::PresentBlend(bool clear, DWORD flags, DWORD alpha)
 {
   CSingleLock lock(g_graphicsContext);
+  SPresent& m = m_Queue[m_presentsource];
 
-  if( m_presentfield == FS_BOT )
+  if( m.presentfield == FS_BOT )
   {
     m_pRenderer->RenderUpdate(clear, flags | RENDER_FLAG_BOT | RENDER_FLAG_NOOSD, alpha);
     m_pRenderer->RenderUpdate(false, flags | RENDER_FLAG_TOP, alpha / 2);
@@ -866,9 +869,13 @@ int CXBMCRenderManager::AddVideoPicture(DVDVideoPicture& pic)
   if (!m_pRenderer)
     return -1;
 
-  int index = GetNextDecode();
-  if(index < 0)
-    return -1;
+  int index;
+  {
+    CSingleLock lock(m_presentlock);
+    if (m_free.empty())
+      return -1;
+    index = m_free.front();
+  }
 
   if(m_pRenderer->AddVideoPicture(&pic, index))
     return 1;
@@ -897,7 +904,8 @@ int CXBMCRenderManager::AddVideoPicture(DVDVideoPicture& pic)
     CDVDCodecUtils::CopyDXVA2Picture(&image, &pic);
   }
 #ifdef HAVE_LIBVDPAU
-  else if(pic.format == RENDER_FMT_VDPAU)
+  else if(pic.format == RENDER_FMT_VDPAU
+       || pic.format == RENDER_FMT_VDPAU_420)
     m_pRenderer->AddProcessor(pic.vdpau, index);
 #endif
 #ifdef HAVE_LIBOPENMAX
@@ -912,6 +920,15 @@ int CXBMCRenderManager::AddVideoPicture(DVDVideoPicture& pic)
   else if(pic.format == RENDER_FMT_VAAPI)
     m_pRenderer->AddProcessor(*pic.vaapi, index);
 #endif
+#ifdef HAS_LIBSTAGEFRIGHT
+  else if(pic.format == RENDER_FMT_EGLIMG)
+    m_pRenderer->AddProcessor(pic.stf, pic.eglimg, index);
+#endif
+#if defined(TARGET_ANDROID)
+  else if(pic.format == RENDER_FMT_MEDIACODEC)
+    m_pRenderer->AddProcessor(pic.mediacodec, index);
+#endif
+
   m_pRenderer->ReleaseImage(index, false);
 
   return index;
@@ -978,7 +995,7 @@ int CXBMCRenderManager::WaitForBuffer(volatile bool& bStop, int timeout)
   CSingleLock lock2(m_presentlock);
 
   XbmcThreads::EndTime endtime(timeout);
-  while(GetNextDecode() < 0)
+  while(m_free.empty())
   {
     m_presentevent.wait(lock2, std::min(50, timeout));
     if(endtime.IsTimePast() || bStop)
@@ -990,34 +1007,17 @@ int CXBMCRenderManager::WaitForBuffer(volatile bool& bStop, int timeout)
   }
 
   // make sure overlay buffer is released, this won't happen on AddOverlay
-  m_overlays.Release(GetNextDecode());
+  m_overlays.Release(m_free.front());
 
   // return buffer level
-  return (m_QueueOutput - m_QueueRender + m_QueueSize) % m_QueueSize;
-}
-
-int CXBMCRenderManager::GetNextRender()
-{
-  if (m_QueueOutput == m_QueueRender)
-    return -1;
-  return (m_QueueRender + 1) % m_QueueSize;
-}
-
-int CXBMCRenderManager::GetNextDecode()
-{
-  int outputPlus1 = (m_QueueOutput + 1) % m_QueueSize;
-  if (outputPlus1 == m_QueueRender)
-    return -1;
-  else
-    return outputPlus1;
+  return m_queued.size() + m_discard.size();;
 }
 
 void CXBMCRenderManager::PrepareNextRender()
 {
   CSingleLock lock(m_presentlock);
 
-  int nxt = GetNextRender();
-  if (nxt < 0)
+  if (m_queued.empty())
   {
     CLog::Log(LOGERROR, "CRenderManager::PrepareNextRender - asked to prepare with nothing available");
     m_presentstep = PRESENT_IDLE;
@@ -1029,16 +1029,19 @@ void CXBMCRenderManager::PrepareNextRender()
   double frametime = 1.0 / GetMaximumFPS();
 
   /* see if any future queued frames are already due */
-  int prv;
-  int idx = m_QueueOutput;
-  while(idx != nxt)
+  std::deque<int>::reverse_iterator curr, prev;
+  int idx;
+  curr = prev = m_queued.rbegin();
+  ++prev;
+  while (prev != m_queued.rend())
   {
-    prv = (idx + m_QueueSize - 1) % m_QueueSize;
-    if(clocktime > m_Queue[prv].timestamp              /* previous frame is late */
-    && clocktime > m_Queue[idx].timestamp - frametime) /* selected frame is close to it's display time */
+    if(clocktime > m_Queue[*prev].timestamp                 /* previous frame is late */
+    && clocktime > m_Queue[*curr].timestamp - frametime)    /* selected frame is close to it's display time */
       break;
-    idx = prv;
+    ++curr;
+    ++prev;
   }
+  idx = *curr;
 
   /* in fullscreen we will block after render, but only for MAXPRESENTDELAY */
   bool next;
@@ -1049,11 +1052,17 @@ void CXBMCRenderManager::PrepareNextRender()
 
   if (next)
   {
-    m_presenttime   = m_Queue[idx].timestamp;
-    m_presentmethod = m_Queue[idx].presentmethod;
-    m_presentfield  = m_Queue[idx].presentfield;
+    /* skip late frames */
+    while(m_queued.front() != idx)
+    {
+      requeue(m_discard, m_queued);
+      m_QueueSkip++;
+    }
+
     m_presentstep   = PRESENT_FLIP;
+    m_discard.push_back(m_presentsource);
     m_presentsource = idx;
+    m_queued.pop_front();
     m_presentevent.notifyAll();
   }
 }
@@ -1062,12 +1071,10 @@ void CXBMCRenderManager::DiscardBuffer()
 {
   CSharedLock lock(m_sharedSection);
   CSingleLock lock2(m_presentlock);
-  while(m_QueueOutput != m_QueueRender)
-  {
-    m_pRenderer->ReleaseBuffer(m_QueueOutput);
-    m_overlays.Release(m_QueueOutput);
-    m_QueueOutput = (m_QueueOutput + m_QueueSize - 1) % m_QueueSize;
-  }
+
+  while(!m_queued.empty())
+    requeue(m_discard, m_queued);
+
   if(m_presentstep == PRESENT_READY)
     m_presentstep   = PRESENT_IDLE;
   m_presentevent.notifyAll();

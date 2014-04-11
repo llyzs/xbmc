@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  */
 
 #include "system.h"
-#include "settings/ISettingCallback.h"
+#include "settings/lib/ISettingCallback.h"
 
 #ifdef HAS_WEB_SERVER
 class CWebServer;

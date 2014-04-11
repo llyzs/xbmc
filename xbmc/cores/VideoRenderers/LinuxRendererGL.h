@@ -3,7 +3,7 @@
 
 /*
  *      Copyright (C) 2007-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,18 +33,16 @@
 #include "RenderFormats.h"
 #include "guilib/GraphicContext.h"
 #include "BaseRenderer.h"
-#include "RenderFormats.h"
 
 #include "threads/Event.h"
 
 class CRenderCapture;
 
-class CVDPAU;
 class CBaseTexture;
 namespace Shaders { class BaseYUV2RGBShader; }
 namespace Shaders { class BaseVideoFilterShader; }
 namespace VAAPI   { struct CHolder; }
-
+namespace VDPAU   { class CVdpauRenderPicture; }
 
 #undef ALIGN
 #define ALIGN(value, alignment) (((value)+((alignment)-1))&~((alignment)-1))
@@ -143,7 +141,7 @@ public:
   virtual unsigned int GetProcessorSize();
 
 #ifdef HAVE_LIBVDPAU
-  virtual void         AddProcessor(CVDPAU* vdpau, int index);
+  virtual void         AddProcessor(VDPAU::CVdpauRenderPicture* vdpau, int index);
 #endif
 #ifdef HAVE_LIBVA
   virtual void         AddProcessor(VAAPI::CHolder& holder, int index);
@@ -178,35 +176,39 @@ protected:
   void UpdateVideoFilter();
 
   // textures
-  void (CLinuxRendererGL::*m_textureUpload)(int index);
+  bool (CLinuxRendererGL::*m_textureUpload)(int index);
   void (CLinuxRendererGL::*m_textureDelete)(int index);
   bool (CLinuxRendererGL::*m_textureCreate)(int index);
 
-  void UploadYV12Texture(int index);
+  bool UploadYV12Texture(int index);
   void DeleteYV12Texture(int index);
   bool CreateYV12Texture(int index);
 
-  void UploadNV12Texture(int index);
+  bool UploadNV12Texture(int index);
   void DeleteNV12Texture(int index);
   bool CreateNV12Texture(int index);
   
-  void UploadVDPAUTexture(int index);
+  bool UploadVDPAUTexture(int index);
   void DeleteVDPAUTexture(int index);
   bool CreateVDPAUTexture(int index);
 
-  void UploadVAAPITexture(int index);
+  bool UploadVDPAUTexture420(int index);
+  void DeleteVDPAUTexture420(int index);
+  bool CreateVDPAUTexture420(int index);
+
+  bool UploadVAAPITexture(int index);
   void DeleteVAAPITexture(int index);
   bool CreateVAAPITexture(int index);
 
-  void UploadCVRefTexture(int index);
+  bool UploadCVRefTexture(int index);
   void DeleteCVRefTexture(int index);
   bool CreateCVRefTexture(int index);
 
-  void UploadYUV422PackedTexture(int index);
+  bool UploadYUV422PackedTexture(int index);
   void DeleteYUV422PackedTexture(int index);
   bool CreateYUV422PackedTexture(int index);
 
-  void UploadRGBTexture(int index);
+  bool UploadRGBTexture(int index);
   void ToRGBFrame(YV12Image* im, unsigned flipIndexPlane, unsigned flipIndexBuf);
   void ToRGBFields(YV12Image* im, unsigned flipIndexPlaneTop, unsigned flipIndexPlaneBot, unsigned flipIndexBuf);
   void SetupRGBBuffer();
@@ -214,12 +216,12 @@ protected:
   void CalculateTextureSourceRects(int source, int num_planes);
 
   // renderers
-  void RenderMultiPass(int renderBuffer, int field);  // multi pass glsl renderer
-  void RenderToFBO(int renderBuffer, int field);
+  void RenderToFBO(int renderBuffer, int field, bool weave = false);
   void RenderFromFBO();
   void RenderSinglePass(int renderBuffer, int field); // single pass glsl renderer
   void RenderSoftware(int renderBuffer, int field);   // single pass s/w yuv2rgb renderer
   void RenderVDPAU(int renderBuffer, int field);      // render using vdpau hardware
+  void RenderProgressiveWeave(int renderBuffer, int field); // render using vdpau hardware
   void RenderVAAPI(int renderBuffer, int field);      // render using vdpau hardware
 
   struct
@@ -236,7 +238,6 @@ protected:
   bool m_bValidated;
   std::vector<ERenderFormat> m_formats;
   bool m_bImageReady;
-  ERenderFormat m_format;
   GLenum m_textureTarget;
   unsigned short m_renderMethod;
   RenderQuality m_renderQuality;
@@ -280,7 +281,7 @@ protected:
     GLuint    pbo[MAX_PLANES];
 
 #ifdef HAVE_LIBVDPAU
-    CVDPAU*   vdpau;
+    VDPAU::CVdpauRenderPicture *vdpau;
 #endif
 #ifdef HAVE_LIBVA
     VAAPI::CHolder& vaapi;
@@ -300,6 +301,7 @@ protected:
                 , unsigned width,  unsigned height
                 , int stride, int bpp, void* data, GLuint* pbo = NULL );
 
+  void GetPlaneTextureSize(YUVPLANE& plane);
 
   Shaders::BaseYUV2RGBShader     *m_pYUVShader;
   Shaders::BaseVideoFilterShader *m_pVideoFilterShader;
@@ -328,9 +330,9 @@ protected:
 
 
 inline int NP2( unsigned x ) {
-#if defined(_LINUX) && !defined(__POWERPC__) && !defined(__PPC__) && !defined(__arm__)
+#if defined(TARGET_POSIX) && !defined(__POWERPC__) && !defined(__PPC__) && !defined(__arm__)
   // If there are any issues compiling this, just append a ' && 0'
-  // to the above to make it '#if defined(_LINUX) && 0'
+  // to the above to make it '#if defined(TARGET_POSIX) && 0'
 
   // Linux assembly is AT&T Unix style, not Intel style
   unsigned y;

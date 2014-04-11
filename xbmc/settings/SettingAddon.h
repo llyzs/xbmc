@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  */
 
-#include "Setting.h"
+#include "settings/lib/Setting.h"
 #include "addons/IAddon.h"
 
 class CSettingAddon : public CSettingString
@@ -28,6 +28,8 @@ public:
   CSettingAddon(const std::string &id, CSettingsManager *settingsManager = NULL);
   CSettingAddon(const std::string &id, const CSettingAddon &setting);
   virtual ~CSettingAddon() { }
+
+  virtual CSetting* Clone(const std::string &id) const;
 
   virtual bool Deserialize(const TiXmlNode *node, bool update = false);
 

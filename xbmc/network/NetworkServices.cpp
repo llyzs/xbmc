@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2012 Team XBMC
- *      http://www.xbmc.org
+ *      Copyright (C) 2005-2013 Team XBMC
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@
 #endif
 
 #include "settings/AdvancedSettings.h"
-#include "settings/Setting.h"
+#include "settings/lib/Setting.h"
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/RssManager.h"
@@ -210,12 +210,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
       }
 #endif //HAS_ZEROCONF
 
-      if (!StartAirPlayServer())
-      {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), "", g_localizeStrings.Get(33100), "");
-        return false;
-      }
-
+      // note - airtunesserver has to start before airplay server (ios7 client detection bug)
 #ifdef HAS_AIRTUNES
       if (!StartAirTunesServer())
       {
@@ -223,6 +218,12 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
         return false;
       }
 #endif //HAS_AIRTUNES
+      
+      if (!StartAirPlayServer())
+      {
+        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), "", g_localizeStrings.Get(33100), "");
+        return false;
+      }      
     }
     else
     {
@@ -402,8 +403,10 @@ void CNetworkServices::Start()
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33102), g_localizeStrings.Get(33100));
   if (CSettings::Get().GetBool("services.esenabled") && !StartJSONRPCServer())
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33103), g_localizeStrings.Get(33100));
-  StartAirPlayServer();
+  
+  // note - airtunesserver has to start before airplay server (ios7 client detection bug)
   StartAirTunesServer();
+  StartAirPlayServer();
   StartRss();
 }
 
@@ -740,7 +743,6 @@ bool CNetworkServices::StartUPnP()
   ret |= StartUPnPClient();
   ret |= StartUPnPServer();
   ret |= StartUPnPRenderer();
-    return true;
 #endif // HAS_UPNP
   return ret;
 }

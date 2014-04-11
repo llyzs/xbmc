@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ bool CFileCache::Open(const CURL& url)
   // opening the source file.
   if (!m_source.Open(m_sourcePath, READ_NO_CACHE | READ_TRUNCATED | READ_CHUNKED))
   {
-    CLog::Log(LOGERROR,"%s - failed to open source <%s>", __FUNCTION__, m_sourcePath.c_str());
+    CLog::Log(LOGERROR,"%s - failed to open source <%s>", __FUNCTION__, url.GetRedacted().c_str());
     Close();
     return false;
   }
@@ -223,7 +223,6 @@ void CFileCache::Process()
       bool sourceSeekFailed = false;
       if (!cacheReachEOF)
       {
-        CLog::Log(LOGDEBUG,"CFileCache::Process - Request seek on source to %"PRId64, cacheMaxPos);
         m_nSeekResult = m_source.Seek(cacheMaxPos, SEEK_SET);
         if (m_nSeekResult != cacheMaxPos)
         {
@@ -482,6 +481,15 @@ CStdString CFileCache::GetContent()
     return IFile::GetContent();
 
   return m_source.GetImplemenation()->GetContent();
+}
+
+std::string CFileCache::GetContentCharset(void)
+{
+  IFile* impl = m_source.GetImplemenation();
+  if (!impl)
+    return IFile::GetContentCharset();
+
+  return impl->GetContentCharset();
 }
 
 int CFileCache::IoControl(EIoControl request, void* param)

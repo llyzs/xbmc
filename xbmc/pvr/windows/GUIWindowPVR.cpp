@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "pvr/addons/PVRClients.h"
 #include "guilib/GUIMessage.h"
 #include "guilib/GUIWindowManager.h"
+#include "guilib/Key.h"
 #include "dialogs/GUIDialogBusy.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "threads/SingleLock.h"
@@ -134,6 +135,14 @@ bool CGUIWindowPVR::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
   CGUIWindowPVRCommon *view = GetActiveView();
   return (view && view->OnContextButton(itemNumber, button)) ||
       CGUIMediaWindow::OnContextButton(itemNumber, button);
+}
+
+bool CGUIWindowPVR::OnBack(int actionID)
+{
+  if (actionID == ACTION_NAV_BACK)
+    // don't call CGUIMediaWindow as it will attempt to go to the parent folder which we don't want.
+    return CGUIWindow::OnBack(actionID);
+  return CGUIMediaWindow::OnBack(actionID);
 }
 
 void CGUIWindowPVR::OnInitWindow(void)

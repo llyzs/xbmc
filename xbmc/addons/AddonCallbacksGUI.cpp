@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "filesystem/File.h"
 #include "utils/URIUtils.h"
 #include "utils/TimeUtils.h"
+#include "utils/StringUtils.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
 #include "guilib/TextureManager.h"
@@ -518,9 +519,10 @@ void CAddonCallbacksGUI::Window_SetProperty(void *addonData, GUIHANDLE handle, c
     return;
 
   CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -544,9 +546,10 @@ void CAddonCallbacksGUI::Window_SetPropertyInt(void *addonData, GUIHANDLE handle
     return;
 
   CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -570,9 +573,10 @@ void CAddonCallbacksGUI::Window_SetPropertyBool(void *addonData, GUIHANDLE handl
     return;
 
   CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -596,9 +600,10 @@ void CAddonCallbacksGUI::Window_SetPropertyDouble(void *addonData, GUIHANDLE han
     return;
 
   CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  pWindow->SetProperty(lowerKey.ToLower(), value);
+  pWindow->SetProperty(lowerKey, value);
   Unlock();
 }
 
@@ -621,9 +626,11 @@ const char* CAddonCallbacksGUI::Window_GetProperty(void *addonData, GUIHANDLE ha
   if (!pWindow)
     return NULL;
 
-  Lock();
   CStdString lowerKey = key;
-  string value = pWindow->GetProperty(lowerKey.ToLower()).asString();
+  StringUtils::ToLower(lowerKey);
+
+  Lock();
+  string value = pWindow->GetProperty(lowerKey).asString();
   Unlock();
 
   return strdup(value.c_str());
@@ -648,9 +655,11 @@ int CAddonCallbacksGUI::Window_GetPropertyInt(void *addonData, GUIHANDLE handle,
   if (!pWindow)
     return -1;
 
-  Lock();
   CStdString lowerKey = key;
-  int value = (int)pWindow->GetProperty(lowerKey.ToLower()).asInteger();
+  StringUtils::ToLower(lowerKey);
+
+  Lock();
+  int value = (int)pWindow->GetProperty(lowerKey).asInteger();
   Unlock();
 
   return value;
@@ -674,10 +683,12 @@ bool CAddonCallbacksGUI::Window_GetPropertyBool(void *addonData, GUIHANDLE handl
   CGUIWindow      *pWindow      = (CGUIWindow*)g_windowManager.GetWindow(pAddonWindow->m_iWindowId);
   if (!pWindow)
     return false;
+  
+  CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  CStdString lowerKey = key;
-  bool value = pWindow->GetProperty(lowerKey.ToLower()).asBoolean();
+  bool value = pWindow->GetProperty(lowerKey).asBoolean();
   Unlock();
 
   return value;
@@ -701,10 +712,12 @@ double CAddonCallbacksGUI::Window_GetPropertyDouble(void *addonData, GUIHANDLE h
   CGUIWindow      *pWindow      = (CGUIWindow*)g_windowManager.GetWindow(pAddonWindow->m_iWindowId);
   if (!pWindow)
     return 0.0;
+  
+  CStdString lowerKey = key;
+  StringUtils::ToLower(lowerKey);
 
   Lock();
-  CStdString lowerKey = key;
-  double value = pWindow->GetProperty(lowerKey.ToLower()).asDouble();
+  double value = pWindow->GetProperty(lowerKey).asDouble();
   Unlock();
 
   return value;
@@ -1417,8 +1430,7 @@ bool CGUIAddonWindow::OnMessage(CGUIMessage& message)
 
 void CGUIAddonWindow::AllocResources(bool forceLoad /*= FALSE */)
 {
-  CStdString tmpDir;
-  URIUtils::GetDirectory(GetProperty("xmlfile").asString(), tmpDir);
+  CStdString tmpDir = URIUtils::GetDirectory(GetProperty("xmlfile").asString());
   CStdString fallbackMediaPath;
   URIUtils::GetParentPath(tmpDir, fallbackMediaPath);
   URIUtils::RemoveSlashAtEnd(fallbackMediaPath);
@@ -1432,9 +1444,6 @@ void CGUIAddonWindow::AllocResources(bool forceLoad /*= FALSE */)
 
 void CGUIAddonWindow::FreeResources(bool forceUnLoad /*= FALSE */)
 {
-  // Unload temporary language strings
-  ClearAddonStrings();
-
   CGUIMediaWindow::FreeResources(forceUnLoad);
 }
 
@@ -1518,12 +1527,6 @@ void CGUIAddonWindow::WaitForActionEvent(unsigned int timeout)
 void CGUIAddonWindow::PulseActionEvent()
 {
   m_actionEvent.Set();
-}
-
-void CGUIAddonWindow::ClearAddonStrings()
-{
-  // Unload temporary language strings
-  g_localizeStrings.ClearBlock(m_addon->Path());
 }
 
 bool CGUIAddonWindow::OnClick(int iItem)

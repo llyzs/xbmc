@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2012-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,15 +19,42 @@
  */
 
 #include <stdlib.h>
+#include <errno.h>
 #include <android_native_app_glue.h>
 #include "EventLoop.h"
 #include "XBMCApp.h"
+#include "android/jni/SurfaceTexture.h"
+
+// copied from new android_native_app_glue.c
+static void process_input(struct android_app* app, struct android_poll_source* source) {
+    AInputEvent* event = NULL;
+    int processed = 0;
+    while (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
+        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
+            continue;
+        }
+        int32_t handled = 0;
+        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
+        AInputQueue_finishEvent(app->inputQueue, event, handled);
+        processed = 1;
+    }
+    if (processed == 0) {
+        CXBMCApp::android_printf("process_input: Failure reading next input event: %s", strerror(errno));
+    }
+}
 
 extern void android_main(struct android_app* state)
 {
   {
     // make sure that the linker doesn't strip out our glue
     app_dummy();
+
+    // revector inputPollSource.process so we can shut up
+    // its useless verbose logging on new events (see ouya)
+    // and fix the error in handling multiple input events.
+    // see https://code.google.com/p/android/issues/detail?id=41755
+    state->inputPollSource.process = process_input;
+
     CEventLoop eventLoop(state);
     CXBMCApp xbmcApp(state->activity);
     if (xbmcApp.isValid())
@@ -46,4 +73,47 @@ extern void android_main(struct android_app* state)
     // been properly uninitialized
   }
   exit(0);
+}
+
+extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+  jint version = JNI_VERSION_1_6;
+  JNIEnv* env;
+  if (vm->GetEnv(reinterpret_cast<void**>(&env), version) != JNI_OK)
+    return -1;
+
+  jclass cMain = env->FindClass("org/xbmc/xbmc/Main");
+  if(cMain)
+  {
+    JNINativeMethod mOnNewIntent = {
+      "_onNewIntent",
+      "(Landroid/content/Intent;)V",
+      (void*)&CJNIContext::_onNewIntent
+    };
+    env->RegisterNatives(cMain, &mOnNewIntent, 1);
+  }
+
+  jclass cBroadcastReceiver = env->FindClass("org/xbmc/xbmc/XBMCBroadcastReceiver");
+  if(cBroadcastReceiver)
+  {
+    JNINativeMethod mOnReceive =  {
+      "_onReceive",
+      "(Landroid/content/Intent;)V",
+      (void*)&CJNIBroadcastReceiver::_onReceive
+    };
+    env->RegisterNatives(cBroadcastReceiver, &mOnReceive, 1);
+  }
+
+  jclass cFrameAvailableListener = env->FindClass("org/xbmc/xbmc/XBMCOnFrameAvailableListener");
+  if(cFrameAvailableListener)
+  {
+    JNINativeMethod mOnFrameAvailable = {
+      "_onFrameAvailable",
+      "(Landroid/graphics/SurfaceTexture;)V",
+      (void*)&CJNISurfaceTextureOnFrameAvailableListener::_onFrameAvailable
+    };
+    env->RegisterNatives(cFrameAvailableListener, &mOnFrameAvailable, 1);
+  }
+
+  return version;
 }

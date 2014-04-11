@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -63,6 +63,8 @@ bool CDVDOverlayCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &optio
   m_pCodecContext->codec_tag = hints.codec_tag;
   m_pCodecContext->time_base.num = 1;
   m_pCodecContext->time_base.den = DVD_TIME_BASE;
+  m_pCodecContext->pkt_timebase.num = 1;
+  m_pCodecContext->pkt_timebase.den = DVD_TIME_BASE;
 
   if( hints.extradata && hints.extrasize > 0 )
   {
@@ -181,7 +183,7 @@ int CDVDOverlayCodecFFmpeg::Decode(DemuxPacket *pPacket)
 
   double pts_offset = 0.0;
  
-  if (m_pCodecContext->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_Subtitle.format == 0) 
+  if (m_pCodecContext->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE && m_Subtitle.format == 0)
   {
     // for pgs subtitles the packet pts of the end_segments are wrong
     // instead use the subtitle pts to calc the offset here
@@ -255,15 +257,7 @@ CDVDOverlay* CDVDOverlayCodecFFmpeg::GetOverlay()
     overlay->y        = rect.y;
     overlay->width    = rect.w;
     overlay->height   = rect.h;
-
-#if (defined(LIBAVCODEC_FROM_FFMPEG) && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(54,71,100)) || \
-    (defined(LIBAVCODEC_FROM_LIBAV)  && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(54,33,0))
-    // ffmpeg commit: 1885ffb03d0af28e6bac2bcc8725fa15b93f6ac9 (Nov 3 2012)
-    //       release: 1.1 (Jan 7 2013)
-    // libav  commit: 85f67c4865d8014ded2aaa64b3cba6e2970342d7 (Oct 20 2012)
-    //       release: v9 (Jan 5 2013)
     overlay->bForced  = rect.flags != 0;
-#endif
 
     int right  = overlay->x + overlay->width;
     int bottom = overlay->y + overlay->height;

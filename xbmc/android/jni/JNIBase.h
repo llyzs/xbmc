@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2013 Team XBMC
- *      http://www.xbmc.org
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,16 +18,19 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include "jutils/jutils.hpp"
 
+#include "jutils/jutils.hpp"
 class CJNIBase
 {
+  friend class CJNIContext; //for SetSDKVersion()
+
   typedef void (CJNIBase::*safe_bool_type)();
   void non_null_object() {}
 
 public:
   operator safe_bool_type() const { return !m_object ?  0 : &CJNIBase::non_null_object; }
-  const jni::jhobject& get() const { return m_object; }
+  const jni::jhobject& get_raw() const { return m_object; }
+  static int GetSDKVersion();
 
 protected:
   CJNIBase(jni::jhobject const& object);
@@ -39,6 +42,8 @@ protected:
   jni::jhobject m_object;
 
 private:
+  static void SetSDKVersion(int);
   std::string m_className;
+  static int m_sdk_version;
 };
 

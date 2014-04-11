@@ -1,8 +1,8 @@
 #pragma once
 
 /*
- *      Copyright (C) 2005-2012 Team XBMC
- *      http://www.xbmc.org
+ *      Copyright (C) 2005-2013 Team XBMC
+ *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@
 
 #include "GUIControlSettings.h"
 #include "guilib/GUIWindow.h"
-#include "settings/SettingDependency.h"
-#include "settings/SettingSection.h"
+#include "settings/lib/SettingDependency.h"
+#include "settings/lib/SettingSection.h"
 #include "settings/Settings.h"
-#include "settings/SettingsManager.h"
+#include "settings/lib/SettingsManager.h"
 #include "threads/Timer.h"
 
 typedef boost::shared_ptr<CGUIControlBaseSetting> BaseSettingControlPtr;
@@ -86,8 +86,11 @@ protected:
   SettingCategoryList m_categories;
   std::vector<BaseSettingControlPtr> m_settingControls;
 
+  int m_iSetting;
   int m_iCategory;
   int m_iSection;
+  CSettingAction *m_resetSetting;
+  CSettingCategory *m_dummyCategory;
   
   CGUISpinControlEx *m_pOriginalSpin;
   CGUIRadioButtonControl *m_pOriginalRadioButton;
