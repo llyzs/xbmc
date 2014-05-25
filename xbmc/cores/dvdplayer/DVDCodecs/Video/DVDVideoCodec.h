@@ -21,12 +21,16 @@
  */
 
 #include "system.h"
-#include "DllAvFormat.h"
-#include "DllAvCodec.h"
 
 #include <vector>
 #include <string>
 #include "cores/VideoRenderers/RenderFormats.h"
+
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
+
+class CSetting;
 
 struct DVDCodecAvailableType 
 {
@@ -106,8 +110,8 @@ struct DVDVideoPicture
   unsigned int extended_format;
   char         stereo_mode[32];
 
-  int8_t* qscale_table; // Quantization parameters, primarily used by filters
-  int qscale_stride;
+  int8_t* qp_table; // Quantization parameters, primarily used by filters
+  int qstride;
   int qscale_type;
 
   unsigned int iWidth;
@@ -277,7 +281,7 @@ public:
    * Hide or Show Settings depending on the currently running hardware 
    *
    */
-   static bool IsSettingVisible(const std::string &condition, const std::string &value, const std::string &settingId);
+   static bool IsSettingVisible(const std::string &condition, const std::string &value, const CSetting *setting);
 
   /**
   * Interact with user settings so that user disabled codecs are disabled

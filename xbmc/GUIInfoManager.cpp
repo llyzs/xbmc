@@ -249,6 +249,7 @@ const infomap system_labels[] =  {{ "hasnetwork",       SYSTEM_ETHERNET_LINK_ACT
                                   { "canhibernate",     SYSTEM_CAN_HIBERNATE },
                                   { "canreboot",        SYSTEM_CAN_REBOOT },
                                   { "screensaveractive",SYSTEM_SCREENSAVER_ACTIVE },
+                                  { "dpmsactive",       SYSTEM_DPMS_ACTIVE },
                                   { "cputemperature",   SYSTEM_CPU_TEMPERATURE },     // labels from here
                                   { "cpuusage",         SYSTEM_CPU_USAGE },
                                   { "gputemperature",   SYSTEM_GPU_TEMPERATURE },
@@ -259,6 +260,7 @@ const infomap system_labels[] =  {{ "hasnetwork",       SYSTEM_ETHERNET_LINK_ACT
                                   { "usedspacepercent", SYSTEM_USED_SPACE_PERCENT },
                                   { "freespacepercent", SYSTEM_FREE_SPACE_PERCENT },
                                   { "buildversion",     SYSTEM_BUILD_VERSION },
+                                  { "buildversionshort",SYSTEM_BUILD_VERSION_SHORT },
                                   { "builddate",        SYSTEM_BUILD_DATE },
                                   { "fps",              SYSTEM_FPS },
                                   { "dvdtraystate",     SYSTEM_DVD_TRAY_STATE },
@@ -435,7 +437,8 @@ const infomap container_bools[] ={{ "onnext",           CONTAINER_MOVE_NEXT },
                                   { "hasprevious",      CONTAINER_HAS_PREVIOUS },
                                   { "canfilter",        CONTAINER_CAN_FILTER },
                                   { "canfilteradvanced",CONTAINER_CAN_FILTERADVANCED },
-                                  { "filtered",         CONTAINER_FILTERED }};
+                                  { "filtered",         CONTAINER_FILTERED },
+                                  { "isupdating",       CONTAINER_ISUPDATING }};
 
 const infomap container_ints[] = {{ "row",              CONTAINER_ROW },
                                   { "column",           CONTAINER_COLUMN },
@@ -579,6 +582,7 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "hasepg",           LISTITEM_HAS_EPG },
                                   { "hastimer",         LISTITEM_HASTIMER },
                                   { "isrecording",      LISTITEM_ISRECORDING },
+                                  { "inprogress",       LISTITEM_INPROGRESS },
                                   { "isencrypted",      LISTITEM_ISENCRYPTED },
                                   { "progress",         LISTITEM_PROGRESS },
                                   { "dateadded",        LISTITEM_DATE_ADDED },
@@ -1810,6 +1814,9 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, CStdString *fa
       }
     }
     break;
+  case SYSTEM_BUILD_VERSION_SHORT:
+    strLabel = GetVersionShort();
+    break;
   case SYSTEM_BUILD_VERSION:
     strLabel = GetVersion();
     break;
@@ -2309,6 +2316,8 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
     bReturn = g_powerManager.CanReboot();
   else if (condition == SYSTEM_SCREENSAVER_ACTIVE)
     bReturn = g_application.IsInScreenSaver();
+  else if (condition == SYSTEM_DPMS_ACTIVE)
+    bReturn = g_application.IsDPMSActive();
 
   else if (condition == PLAYER_SHOWINFO)
     bReturn = m_playerShowInfo;
@@ -2390,7 +2399,8 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
     if (pWindow)
       bReturn = ((CGUIMediaWindow*)pWindow)->CurrentDirectory().HasArt("thumb");
   }
-  else if (condition == CONTAINER_HAS_NEXT || condition == CONTAINER_HAS_PREVIOUS || condition == CONTAINER_SCROLLING)
+  else if (condition == CONTAINER_HAS_NEXT || condition == CONTAINER_HAS_PREVIOUS
+           || condition == CONTAINER_SCROLLING || condition == CONTAINER_ISUPDATING)
   {
     CGUIWindow *window = GetWindowWithCondition(contextWindow, WINDOW_CONDITION_IS_MEDIA_WINDOW);
     if (window)
@@ -2936,6 +2946,7 @@ bool CGUIInfoManager::GetMultiInfoBool(const GUIInfo &info, int contextWindow, c
       case CONTAINER_HAS_PREVIOUS:
       case CONTAINER_SCROLLING:
       case CONTAINER_SUBITEM:
+      case CONTAINER_ISUPDATING:
         {
           const CGUIControl *control = NULL;
           if (info.GetData1())
@@ -2972,7 +2983,7 @@ bool CGUIInfoManager::GetMultiInfoBool(const GUIInfo &info, int contextWindow, c
       case VIDEOPLAYER_CONTENT:
         {
           CStdString strContent="files";
-          if (m_currentFile->HasVideoInfoTag() && m_currentFile->GetVideoInfoTag()->m_type == "movie")
+          if (m_currentFile->HasVideoInfoTag() && m_currentFile->GetVideoInfoTag()->m_type == MediaTypeMovie)
             strContent = "movies";
           if (m_currentFile->HasVideoInfoTag() && m_currentFile->GetVideoInfoTag()->m_iSeason > -1) // episode
             strContent = "episodes";
@@ -3310,7 +3321,7 @@ CStdString CGUIInfoManager::GetMultiInfoLabel(const GUIInfo &info, int contextWi
     if (addon && info.m_info == SYSTEM_ADDON_ICON)
       return addon->Icon();
     if (addon && info.m_info == SYSTEM_ADDON_VERSION)
-      return addon->Version().c_str();
+      return addon->Version().asString();
   }
   else if (info.m_info == PLAYLIST_LENGTH ||
            info.m_info == PLAYLIST_POSITION ||
@@ -4202,14 +4213,17 @@ CTemperature CGUIInfoManager::GetGPUTemperature()
 
 // Version string MUST NOT contain spaces.  It is used
 // in the HTTP request user agent.
+std::string CGUIInfoManager::GetVersionShort(void)
+{
+  return StringUtils::Format("%d.%d%s", VERSION_MAJOR, VERSION_MINOR, VERSION_TAG);
+}
+
 CStdString CGUIInfoManager::GetVersion()
 {
-  CStdString tmp;
   if (GetXbmcGitRevision())
-    tmp = StringUtils::Format("%d.%d%s Git:%s", VERSION_MAJOR, VERSION_MINOR, VERSION_TAG, GetXbmcGitRevision());
-  else
-    tmp = StringUtils::Format("%d.%d%s", VERSION_MAJOR, VERSION_MINOR, VERSION_TAG);
-  return tmp;
+    return GetVersionShort() + " Git:" + GetXbmcGitRevision();
+
+  return GetVersionShort();
 }
 
 CStdString CGUIInfoManager::GetBuild()
@@ -5150,6 +5164,14 @@ bool CGUIInfoManager::GetItemBool(const CGUIListItem *item, int condition) const
         if (timer && timer->HasPVRTimerInfoTag())
           return timer->GetPVRTimerInfoTag()->IsRecording();
       }
+    }
+    else if (condition == LISTITEM_INPROGRESS)
+    {
+      if (!g_PVRManager.IsStarted())
+        return false;
+
+      if (pItem->HasEPGInfoTag())
+        return pItem->GetEPGInfoTag()->IsActive();
     }
     else if (condition == LISTITEM_HASTIMER)
     {

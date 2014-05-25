@@ -39,7 +39,7 @@ else ifeq ($(findstring ios,@ARCH@),ios)
 SRCS += Sinks/AESinkDARWINIOS.cpp
 else ifeq ($(findstring osx,@ARCH@),osx)
 SRCS += Sinks/AESinkDARWINOSX.cpp
-SRCS += Sinks/osx/CoreAudioChannelCount.cpp
+SRCS += Sinks/osx/CoreAudioChannelLayout.cpp
 SRCS += Sinks/osx/CoreAudioDevice.cpp
 SRCS += Sinks/osx/CoreAudioHardware.cpp
 SRCS += Sinks/osx/CoreAudioHelpers.cpp
@@ -60,7 +60,6 @@ SRCS += Utils/AEUtil.cpp
 SRCS += Utils/AEStreamInfo.cpp
 SRCS += Utils/AEPackIEC61937.cpp
 SRCS += Utils/AEBitstreamPacker.cpp
-SRCS += Utils/AEWAVLoader.cpp
 SRCS += Utils/AEELDParser.cpp
 SRCS += Utils/AEDeviceInfo.cpp
 SRCS += Utils/AELimiter.cpp

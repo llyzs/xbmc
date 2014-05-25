@@ -269,6 +269,7 @@ public:
   CApplicationPlayer* m_pPlayer;
 
   inline bool IsInScreenSaver() { return m_bScreenSave; };
+  inline bool IsDPMSActive() { return m_dpmsIsActive; };
   int m_iScreenSaveLock; // spiff: are we checking for a lock? if so, ignore the screensaver state, if -1 we have failed to input locks
 
   bool m_bPlaybackStarting;
@@ -282,10 +283,6 @@ public:
   } PlayState;
   PlayState m_ePlayState;
   CCriticalSection m_playStateMutex;
-
-  bool m_bInBackground;
-  inline bool IsInBackground() { return m_bInBackground; };
-  void SetInBackground(bool background);
 
   CKaraokeLyricsManager* m_pKaraokeMgr;
 
@@ -365,9 +362,8 @@ protected:
   virtual bool OnSettingUpdate(CSetting* &setting, const char *oldSettingId, const TiXmlNode *oldSettingNode);
 
   bool LoadSkin(const CStdString& skinID);
-  void LoadSkin(const boost::shared_ptr<ADDON::CSkinInfo>& skin);
+  bool LoadSkin(const boost::shared_ptr<ADDON::CSkinInfo>& skin);
 
-  bool m_skinReloading; // if true we disallow LoadSkin until ReloadSkin is called
   bool m_skinReverting;
 
   bool m_loggingIn;

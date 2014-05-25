@@ -17,11 +17,12 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+#include <Platinum/Source/Platinum/Platinum.h>
+
 #include "network/Network.h"
 #include "UPnPRenderer.h"
 #include "UPnP.h"
 #include "UPnPInternal.h"
-#include "Platinum.h"
 #include "Application.h"
 #include "ApplicationMessenger.h"
 #include "FileItem.h"
@@ -42,6 +43,8 @@
 #include "playlists/PlayList.h"
 #include "GUIUserMessages.h"
 
+NPT_SET_LOCAL_LOGGER("xbmc.upnp.renderer")
+
 using namespace ANNOUNCEMENT;
 
 namespace UPNP
@@ -54,7 +57,7 @@ CUPnPRenderer::CUPnPRenderer(const char* friendly_name, bool show_ip /*= false*/
                              const char* uuid /*= NULL*/, unsigned int port /*= 0*/)
     : PLT_MediaRenderer(friendly_name, show_ip, uuid, port)
 {
-    CAnnouncementManager::AddAnnouncer(this);
+    CAnnouncementManager::Get().AddAnnouncer(this);
 }
 
 /*----------------------------------------------------------------------
@@ -62,7 +65,7 @@ CUPnPRenderer::CUPnPRenderer(const char* friendly_name, bool show_ip /*= false*/
 +---------------------------------------------------------------------*/
 CUPnPRenderer::~CUPnPRenderer()
 {
-    CAnnouncementManager::RemoveAnnouncer(this);
+    CAnnouncementManager::Get().RemoveAnnouncer(this);
 }
 
 /*----------------------------------------------------------------------
@@ -367,10 +370,19 @@ CUPnPRenderer::SetupIcons()
 {
     NPT_String file_root = CSpecialProtocol::TranslatePath("special://xbmc/media/").c_str();
     AddIcon(
-        PLT_DeviceIcon("image/png", 256, 256, 24, "/icon-flat-256x256.png"),
+        PLT_DeviceIcon("image/png", 256, 256, 8, "/icon256x256.png"),
         file_root);
     AddIcon(
-        PLT_DeviceIcon("image/png", 120, 120, 24, "/icon-flat-120x120.png"),
+        PLT_DeviceIcon("image/png", 120, 120, 8, "/icon120x120.png"),
+        file_root);
+    AddIcon(
+        PLT_DeviceIcon("image/png", 48, 48, 8, "/icon48x48.png"),
+        file_root);
+    AddIcon(
+        PLT_DeviceIcon("image/png", 32, 32, 8, "/icon32x32.png"),
+        file_root);
+    AddIcon(
+        PLT_DeviceIcon("image/png", 16, 16, 8, "/icon16x16.png"),
         file_root);
     return NPT_SUCCESS;
 }

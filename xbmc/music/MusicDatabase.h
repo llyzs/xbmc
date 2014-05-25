@@ -371,7 +371,7 @@ public:
   /////////////////////////////////////////////////
   // Karaoke
   /////////////////////////////////////////////////
-  void AddKaraokeData(int idSong, int iKaraokeNumber, DWORD crc);
+  void AddKaraokeData(int idSong, int iKaraokeNumber);
   bool GetSongByKaraokeNumber( int number, CSong& song );
   bool SetKaraokeSongDelay( int idSong, int delay );
   int GetKaraokeSongsCount();
@@ -481,7 +481,6 @@ private:
    */
   virtual void CreateViews();
 
-  void SplitString(const CStdString &multiString, std::vector<std::string> &vecStrings, CStdString &extraStrings);
   CSong GetSongFromDataset();
   CSong GetSongFromDataset(const dbiplus::sql_record* const record, int offset = 0);
   CArtist GetArtistFromDataset(dbiplus::Dataset* pDS, int offset = 0, bool needThumb = true);
@@ -515,7 +514,6 @@ private:
     song_iTrack,
     song_iDuration,
     song_iYear,
-    song_dwFileNameCRC,
     song_strFileName,
     song_strMusicBrainzTrackID,
     song_iTimesPlayed,

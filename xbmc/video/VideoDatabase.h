@@ -238,6 +238,24 @@ const struct SDbTableOffsets DbTvShowOffsets[] =
 
 typedef enum // this enum MUST match the offset struct further down!! and make sure to keep min and max at -1 and sizeof(offsets)
 {
+  VIDEODB_ID_SEASON_MIN = -1,
+  VIDEODB_ID_SEASON_ID = 0,
+  VIDEODB_ID_SEASON_TVSHOW_ID = 1,
+  VIDEODB_ID_SEASON_NUMBER = 2,
+  VIDEODB_ID_SEASON_TVSHOW_PATH = 3,
+  VIDEODB_ID_SEASON_TVSHOW_TITLE = 4,
+  VIDEODB_ID_SEASON_TVSHOW_PLOT = 5,
+  VIDEODB_ID_SEASON_TVSHOW_PREMIERED = 6,
+  VIDEODB_ID_SEASON_TVSHOW_GENRE = 7,
+  VIDEODB_ID_SEASON_TVSHOW_STUDIO = 8,
+  VIDEODB_ID_SEASON_TVSHOW_MPAA = 9,
+  VIDEODB_ID_SEASON_EPISODES_TOTAL = 10,
+  VIDEODB_ID_SEASON_EPISODES_WATCHED = 11,
+  VIDEODB_ID_SEASON_MAX
+} VIDEODB_SEASON_IDS;
+
+typedef enum // this enum MUST match the offset struct further down!! and make sure to keep min and max at -1 and sizeof(offsets)
+{
   VIDEODB_ID_EPISODE_MIN = -1,
   VIDEODB_ID_EPISODE_TITLE = 0,
   VIDEODB_ID_EPISODE_PLOT = 1,
@@ -431,7 +449,7 @@ public:
 
   bool LoadVideoInfo(const CStdString& strFilenameAndPath, CVideoInfoTag& details);
   bool GetMovieInfo(const CStdString& strFilenameAndPath, CVideoInfoTag& details, int idMovie = -1);
-  bool GetTvShowInfo(const CStdString& strPath, CVideoInfoTag& details, int idTvShow = -1);
+  bool GetTvShowInfo(const CStdString& strPath, CVideoInfoTag& details, int idTvShow = -1, CFileItem* item = NULL);
   bool GetSeasonInfo(int idSeason, CVideoInfoTag& details);
   bool GetEpisodeInfo(const CStdString& strFilenameAndPath, CVideoInfoTag& details, int idEpisode = -1);
   bool GetMusicVideoInfo(const CStdString& strFilenameAndPath, CVideoInfoTag& details, int idMVideo=-1);
@@ -463,6 +481,7 @@ public:
   void DeleteMovie(const CStdString& strFilenameAndPath, bool bKeepId = false, int idMovie = -1);
   void DeleteTvShow(int idTvShow, bool bKeepId = false);
   void DeleteTvShow(const CStdString& strPath, bool bKeepId = false, int idTvShow = -1);
+  void DeleteSeason(int idSeason, bool bKeepId = false);
   void DeleteEpisode(int idEpisode, bool bKeepId = false);
   void DeleteEpisode(const CStdString& strFilenameAndPath, int idEpisode = -1, bool bKeepId = false);
   void DeleteMusicVideo(int idMusicVideo, bool bKeepId = false);
@@ -653,11 +672,12 @@ public:
   bool GetMoviesByWhere(const CStdString& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription = SortDescription());
   bool GetSetsByWhere(const CStdString& strBaseDir, const Filter &filter, CFileItemList& items, bool ignoreSingleMovieSets = false);
   bool GetTvShowsByWhere(const CStdString& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription = SortDescription());
+  bool GetSeasonsByWhere(const CStdString& strBaseDir, const Filter &filter, CFileItemList& items, bool appendFullShowPath = true, const SortDescription &sortDescription = SortDescription());
   bool GetEpisodesByWhere(const CStdString& strBaseDir, const Filter &filter, CFileItemList& items, bool appendFullShowPath = true, const SortDescription &sortDescription = SortDescription());
   bool GetMusicVideosByWhere(const CStdString &baseDir, const Filter &filter, CFileItemList& items, bool checkLocks = true, const SortDescription &sortDescription = SortDescription());
   
   // retrieve sorted and limited items
-  bool GetSortedVideos(MediaType mediaType, const CStdString& strBaseDir, const SortDescription &sortDescription, CFileItemList& items, const Filter &filter = Filter());
+  bool GetSortedVideos(const MediaType &mediaType, const CStdString& strBaseDir, const SortDescription &sortDescription, CFileItemList& items, const Filter &filter = Filter());
 
   // retrieve a list of items
   bool GetItems(const CStdString &strBaseDir, CFileItemList &items, const Filter &filter = Filter(), const SortDescription &sortDescription = SortDescription());
@@ -675,30 +695,30 @@ public:
     switch (type)
     {
     case VIDEODB_CONTENT_MOVIES:
-      out = "movie";
+      out = MediaTypeMovie;
       break;
     case VIDEODB_CONTENT_TVSHOWS:
-      out = "tvshow";
+      out = MediaTypeTvShow;
       break;
     case VIDEODB_CONTENT_EPISODES:
-      out = "episode";
+      out = MediaTypeEpisode;
       break;
     case VIDEODB_CONTENT_MUSICVIDEOS:
-      out = "musicvideo";
+      out = MediaTypeMusicVideo;
       break;
     default:
       break;
     }
   }
 
-  void SetArtForItem(int mediaId, const std::string &mediaType, const std::string &artType, const std::string &url);
-  void SetArtForItem(int mediaId, const std::string &mediaType, const std::map<std::string, std::string> &art);
-  bool GetArtForItem(int mediaId, const std::string &mediaType, std::map<std::string, std::string> &art);
-  std::string GetArtForItem(int mediaId, const std::string &mediaType, const std::string &artType);
-  bool RemoveArtForItem(int mediaId, const std::string &mediaType, const std::string &artType);
-  bool RemoveArtForItem(int mediaId, const std::string &mediaType, const std::set<std::string> &artTypes);
+  void SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url);
+  void SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art);
+  bool GetArtForItem(int mediaId, const MediaType &mediaType, std::map<std::string, std::string> &art);
+  std::string GetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType);
+  bool RemoveArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType);
+  bool RemoveArtForItem(int mediaId, const MediaType &mediaType, const std::set<std::string> &artTypes);
   bool GetTvShowSeasonArt(int mediaId, std::map<int, std::map<std::string, std::string> > &seasonArt);
-  bool GetArtTypes(const std::string &mediaType, std::vector<std::string> &artTypes);
+  bool GetArtTypes(const MediaType &mediaType, std::vector<std::string> &artTypes);
 
   int AddTag(const std::string &tag);
   void AddTagToItem(int idItem, int idTag, const std::string &type);
@@ -829,6 +849,6 @@ private:
   std::vector<int> CleanMediaType(const std::string &mediaType, const std::string &cleanableFileIDs,
                                   std::map<int, bool> &pathsDeleteDecisions, std::string &deletedFileIDs, bool silent);
 
-  void AnnounceRemove(std::string content, int id);
-  void AnnounceUpdate(std::string content, int id);
+  static void AnnounceRemove(std::string content, int id, bool scanning = false);
+  static void AnnounceUpdate(std::string content, int id);
 };

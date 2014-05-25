@@ -105,6 +105,7 @@ CGUIDialogSubtitles::CGUIDialogSubtitles(void)
   m_serviceItems = new CFileItemList;
   m_pausedOnRun = false;
   m_updateSubsList = false;
+  m_LastAutoDownloaded = "";
 }
 
 CGUIDialogSubtitles::~CGUIDialogSubtitles(void)
@@ -138,10 +139,11 @@ bool CGUIDialogSubtitles::OnMessage(CGUIMessage& message)
       OnMessage(msg);
 
       int item = msg.GetParam1();
-      if (item >= 0 && item < m_serviceItems->Size() &&
-          SetService(m_serviceItems->Get(item)->GetProperty("Addon.ID").asString()))
+      if (item >= 0 && item < m_serviceItems->Size())
+      {
+        SetService(m_serviceItems->Get(item)->GetProperty("Addon.ID").asString());
         Search();
-
+      }
       return true;
     }
     else if (iControl == CONTROL_MANUALSEARCH)
@@ -202,6 +204,12 @@ void CGUIDialogSubtitles::Process(unsigned int currentTime, CDirtyRegionList &di
     {
       CGUIMessage message(GUI_MSG_LABEL_BIND, GetID(), CONTROL_SUBLIST, 0, 0, &subs);
       OnMessage(message);
+      if (!subs.IsEmpty())
+      {
+        // focus subtitles list
+        CGUIMessage msg(GUI_MSG_SETFOCUS, GetID(), CONTROL_SUBLIST);
+        OnMessage(msg);
+      }
       m_updateSubsList = false;
     }
     
@@ -351,6 +359,16 @@ void CGUIDialogSubtitles::OnSearchComplete(const CFileItemList *items)
   m_subtitles->Assign(*items);
   UpdateStatus(SEARCH_COMPLETE);
   m_updateSubsList = true;
+
+  if (!items->IsEmpty() && g_application.m_pPlayer->GetSubtitleCount() == 0 &&
+    m_LastAutoDownloaded != g_application.CurrentFile() && CSettings::Get().GetBool("subtitles.downloadfirst"))
+  {
+    CFileItemPtr item = items->Get(0);
+    CLog::Log(LOGDEBUG, "%s - Automatically download first subtitle: %s", __FUNCTION__, item->GetLabel2().c_str());
+    m_LastAutoDownloaded = g_application.CurrentFile();
+    Download(*item);
+  }
+
   SetInvalid();
 }
 
@@ -568,8 +586,8 @@ void CGUIDialogSubtitles::SetSubtitles(const std::string &subtitle)
     {
       g_application.m_pPlayer->SetSubtitle(nStream);
       g_application.m_pPlayer->SetSubtitleVisible(true);
-      CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleDelay = 0.0f;
-      g_application.m_pPlayer->SetSubTitleDelay(0);
+      CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleDelay = CMediaSettings::Get().GetDefaultVideoSettings().m_SubtitleDelay;
+      g_application.m_pPlayer->SetSubTitleDelay(CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleDelay);
     }
   }
 }

@@ -79,7 +79,7 @@ CMusicInfoScanner::~CMusicInfoScanner()
 
 void CMusicInfoScanner::Process()
 {
-  ANNOUNCEMENT::CAnnouncementManager::Announce(ANNOUNCEMENT::AudioLibrary, "xbmc", "OnScanStarted");
+  ANNOUNCEMENT::CAnnouncementManager::Get().Announce(ANNOUNCEMENT::AudioLibrary, "xbmc", "OnScanStarted");
   try
   {
     unsigned int tick = XbmcThreads::SystemClockMillis();
@@ -236,7 +236,7 @@ void CMusicInfoScanner::Process()
   CLog::Log(LOGDEBUG, "%s - Finished scan", __FUNCTION__);
   
   m_bRunning = false;
-  ANNOUNCEMENT::CAnnouncementManager::Announce(ANNOUNCEMENT::AudioLibrary, "xbmc", "OnScanFinished");
+  ANNOUNCEMENT::CAnnouncementManager::Get().Announce(ANNOUNCEMENT::AudioLibrary, "xbmc", "OnScanFinished");
   
   // we need to clear the musicdb cache and update any active lists
   CUtil::DeleteMusicDatabaseDirectoryCache();
@@ -727,7 +727,7 @@ int CMusicInfoScanner::RetrieveMusicInfo(const CStdString& strDirectory, CFileIt
       if (m_musicDatabase.GetArtist(album->artistCredits[0].GetArtistId(), artist))
       {
         artist.strPath = URIUtils::GetParentPath(strDirectory);
-        m_musicDatabase.SetArtForItem(artist.idArtist, "artist", GetArtistArtwork(artist));
+        m_musicDatabase.SetArtForItem(artist.idArtist, MediaTypeArtist, GetArtistArtwork(artist));
       }
     }
 
@@ -955,7 +955,7 @@ loop:
     m_musicDatabase.Open();
     m_musicDatabase.UpdateArtist(artist);
     m_musicDatabase.GetArtistPath(artist.idArtist, artist.strPath);
-    m_musicDatabase.SetArtForItem(artist.idArtist, "artist", GetArtistArtwork(artist));
+    m_musicDatabase.SetArtForItem(artist.idArtist, MediaTypeArtist, GetArtistArtwork(artist));
     m_musicDatabase.Close();
     artistInfo.SetLoaded();
   }
@@ -1168,13 +1168,13 @@ void CMusicInfoScanner::GetAlbumArtwork(long id, const CAlbum &album)
 {
   if (album.thumbURL.m_url.size())
   {
-    if (m_musicDatabase.GetArtForItem(id, "album", "thumb").empty())
+    if (m_musicDatabase.GetArtForItem(id, MediaTypeAlbum, "thumb").empty())
     {
       string thumb = CScraperUrl::GetThumbURL(album.thumbURL.GetFirstThumb());
       if (!thumb.empty())
       {
         CTextureCache::Get().BackgroundCacheImage(thumb);
-        m_musicDatabase.SetArtForItem(id, "album", "thumb", thumb);
+        m_musicDatabase.SetArtForItem(id, MediaTypeAlbum, "thumb", thumb);
       }
     }
   }

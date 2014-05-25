@@ -55,6 +55,8 @@
 #include "GUIListLabel.h"
 #include "GUIListGroup.h"
 #include "GUIInfoManager.h"
+#include "Key.h"
+#include "addons/Skin.h"
 #include "utils/CharsetConverter.h"
 #include "utils/log.h"
 #include "utils/XMLUtils.h"
@@ -212,7 +214,7 @@ bool CGUIControlFactory::GetDimension(const TiXmlNode *pRootNode, const char* st
     if (!min) min = 1;
     return true;
   }
-  value = (float)atof(pNode->FirstChild()->Value());
+  value = ParsePosition(pNode->FirstChild()->Value(), parentSize);
   return true;
 }
 
@@ -677,7 +679,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   float width = 0, height = 0;
   float minHeight = 0, minWidth = 0;
 
-  CGUIAction leftActions, rightActions, upActions, downActions, backActions, nextActions, prevActions;
+  CGUIControl::ActionMap actions;
 
   int pageControl = 0;
   CGUIInfoColor colorDiffuse(0xFFFFFFFF);
@@ -735,10 +737,11 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   float buttonGap = 5;
   int iMovementRange = 0;
   CAspectRatio aspect;
-#ifdef PRE_SKIN_VERSION_9_10_COMPATIBILITY
-  if (insideContainer)  // default for inside containers is keep
-    aspect.ratio = CAspectRatio::AR_KEEP;
-#endif
+  if (g_SkinInfo && g_SkinInfo->APIVersion() < ADDON::AddonVersion("5.1.0"))
+  {
+    if (insideContainer)  // default for inside containers is keep
+      aspect.ratio = CAspectRatio::AR_KEEP;
+  }
 
   CStdString allowHiddenFocus;
   CStdString enableCondition;
@@ -822,13 +825,13 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   hitRect.SetRect(posX, posY, posX + width, posY + height);
   GetHitRect(pControlNode, hitRect);
 
-  GetActions(pControlNode, "onup",    upActions);
-  GetActions(pControlNode, "ondown",  downActions);
-  GetActions(pControlNode, "onleft",  leftActions);
-  GetActions(pControlNode, "onright", rightActions);
-  GetActions(pControlNode, "onnext",  nextActions);
-  GetActions(pControlNode, "onprev",  prevActions);
-  GetActions(pControlNode, "onback",  backActions);
+  GetActions(pControlNode, "onup",    actions[ACTION_MOVE_UP]);
+  GetActions(pControlNode, "ondown",  actions[ACTION_MOVE_DOWN]);
+  GetActions(pControlNode, "onleft",  actions[ACTION_MOVE_LEFT]);
+  GetActions(pControlNode, "onright", actions[ACTION_MOVE_RIGHT]);
+  GetActions(pControlNode, "onnext",  actions[ACTION_NEXT_CONTROL]);
+  GetActions(pControlNode, "onprev",  actions[ACTION_PREV_CONTROL]);
+  GetActions(pControlNode, "onback",  actions[ACTION_NAV_BACK]);
 
   if (XMLUtils::GetInt(pControlNode, "defaultcontrol", defaultControl))
   {
@@ -966,10 +969,11 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
 
   // the <texture> tag can be overridden by the <info> tag
   GetInfoTexture(pControlNode, "texture", texture, textureFile, parentID);
-#ifdef PRE_SKIN_VERSION_9_10_COMPATIBILITY
-  if (type == CGUIControl::GUICONTROL_IMAGE && insideContainer && textureFile.IsConstant())
-    aspect.ratio = CAspectRatio::AR_STRETCH;
-#endif
+  if (g_SkinInfo && g_SkinInfo->APIVersion() < ADDON::AddonVersion("5.1.0"))
+  {
+    if (type == CGUIControl::GUICONTROL_IMAGE && insideContainer && textureFile.IsConstant())
+      aspect.ratio = CAspectRatio::AR_STRETCH;
+  }
 
   GetTexture(pControlNode, "bordertexture", borderTexture);
 
@@ -1265,7 +1269,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   {
     control = new CGUISliderControl(
       parentID, id, posX, posY, width, height,
-      textureBar, textureNib, textureNibFocus, SPIN_CONTROL_TYPE_TEXT);
+      textureBar, textureNib, textureNibFocus, SLIDER_CONTROL_TYPE_PERCENTAGE);
 
     ((CGUISliderControl *)control)->SetInfo(singleInfo);
     ((CGUISliderControl *)control)->SetAction(action);
@@ -1274,7 +1278,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   {
     control = new CGUISettingsSliderControl(
       parentID, id, posX, posY, width, height, sliderWidth, sliderHeight, textureFocus, textureNoFocus,
-      textureBar, textureNib, textureNibFocus, labelInfo, SPIN_CONTROL_TYPE_TEXT);
+      textureBar, textureNib, textureNibFocus, labelInfo, SLIDER_CONTROL_TYPE_PERCENTAGE);
 
     ((CGUISettingsSliderControl *)control)->SetText(strLabel);
     ((CGUISettingsSliderControl *)control)->SetInfo(singleInfo);
@@ -1345,7 +1349,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
   }
   else if (type == CGUIControl::GUICONTAINER_EPGGRID)
   {
-    control = new CGUIEPGGridContainer(parentID, id, posX, posY, width, height, orientation, scrollTime, preloadItems, timeBlocks, rulerUnit, textureProgressIndicator);
+    control = new CGUIEPGGridContainer(parentID, id, posX, posY, width, height, scrollTime, preloadItems, timeBlocks, rulerUnit, textureProgressIndicator);
     ((CGUIEPGGridContainer *)control)->LoadLayout(pControlNode);
     ((CGUIEPGGridContainer *)control)->SetRenderOffset(offset);
     ((CGUIEPGGridContainer *)control)->SetType(viewType, viewLabel);
@@ -1438,7 +1442,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID, const CRect &rect, TiXmlEl
     control->SetEnableCondition(enableCondition);
     control->SetAnimations(animations);
     control->SetColorDiffuse(colorDiffuse);
-    control->SetNavigationActions(upActions, downActions, leftActions, rightActions, backActions);
+    control->SetNavigationActions(actions);
     control->SetPulseOnSelect(bPulse);
     if (hasCamera)
       control->SetCamera(camera);

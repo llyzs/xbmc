@@ -46,9 +46,10 @@
 #include "DVDCodecs/Video/DVDVideoCodecFFmpeg.h"
 #include "DVDDemuxers/DVDDemuxVobsub.h"
 
-#include "DllAvCodec.h"
-#include "DllSwScale.h"
+#include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
 #include "filesystem/File.h"
+#include "cores/FFmpeg.h"
 #include "TextureCache.h"
 #include "Util.h"
 #include "utils/LangCodeExpander.h"
@@ -178,7 +179,8 @@ bool CDVDFileInfo::ExtractThumb(const CStdString &strPath, CTextureDetails &deta
     CDemuxStream* pStream = pDemuxer->GetStream(i);
     if (pStream)
     {
-      if(pStream->type == STREAM_VIDEO)
+      // ignore if it's a picture attachment (e.g. jpeg artwork)
+      if(pStream->type == STREAM_VIDEO && !(pStream->flags & AV_DISPOSITION_ATTACHED_PIC))
         nVideoStream = i;
       else
         pStream->SetDiscard(AVDISCARD_ALL);
@@ -262,11 +264,8 @@ bool CDVDFileInfo::ExtractThumb(const CStdString &strPath, CTextureDetails &deta
               aspect = hint.aspect;
             unsigned int nHeight = (unsigned int)((double)g_advancedSettings.GetThumbSize() / aspect);
 
-            DllSwScale dllSwScale;
-            dllSwScale.Load();
-
             uint8_t *pOutBuf = new uint8_t[nWidth * nHeight * 4];
-            struct SwsContext *context = dllSwScale.sws_getContext(picture.iWidth, picture.iHeight,
+            struct SwsContext *context = sws_getContext(picture.iWidth, picture.iHeight,
                   PIX_FMT_YUV420P, nWidth, nHeight, PIX_FMT_BGRA, SWS_FAST_BILINEAR | SwScaleCPUFlags(), NULL, NULL, NULL);
 
             if (context)
@@ -276,8 +275,8 @@ bool CDVDFileInfo::ExtractThumb(const CStdString &strPath, CTextureDetails &deta
               uint8_t *dst[] = { pOutBuf, 0, 0, 0 };
               int     dstStride[] = { (int)nWidth*4, 0, 0, 0 };
               int orientation = DegreeToOrientation(hint.orientation);
-              dllSwScale.sws_scale(context, src, srcStride, 0, picture.iHeight, dst, dstStride);
-              dllSwScale.sws_freeContext(context);
+              sws_scale(context, src, srcStride, 0, picture.iHeight, dst, dstStride);
+              sws_freeContext(context);
 
               details.width = nWidth;
               details.height = nHeight;
@@ -285,7 +284,6 @@ bool CDVDFileInfo::ExtractThumb(const CStdString &strPath, CTextureDetails &deta
               bOk = true;
             }
 
-            dllSwScale.Unload();
             delete [] pOutBuf;
           }
         }
@@ -382,7 +380,7 @@ bool CDVDFileInfo::DemuxerToStreamDetails(CDVDInputStream *pInputStream, CDVDDem
   for (int iStream=0; iStream<pDemux->GetNrOfStreams(); iStream++)
   {
     CDemuxStream *stream = pDemux->GetStream(iStream);
-    if (stream->type == STREAM_VIDEO)
+    if (stream->type == STREAM_VIDEO && !(stream->flags & AV_DISPOSITION_ATTACHED_PIC))
     {
       CStreamDetailVideo *p = new CStreamDetailVideo();
       p->m_iWidth = ((CDemuxStreamVideo *)stream)->iWidth;
