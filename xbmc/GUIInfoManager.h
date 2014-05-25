@@ -174,6 +174,7 @@ namespace INFO
 #define SYSTEM_HAS_PVR              186
 #define SYSTEM_STARTUP_WINDOW       187
 #define SYSTEM_STEREOSCOPIC_MODE    188
+#define SYSTEM_BUILD_VERSION_SHORT  189
 
 #define NETWORK_IP_ADDRESS          190
 #define NETWORK_MAC_ADDRESS         191
@@ -288,7 +289,7 @@ namespace INFO
 #define CONTAINER_STATIC            347
 #define CONTAINER_MOVE_NEXT         348
 #define CONTAINER_SCROLL_NEXT       349
-
+#define CONTAINER_ISUPDATING        350
 #define CONTAINER_HASFILES          351
 #define CONTAINER_HASFOLDERS        352
 #define CONTAINER_STACKED           353
@@ -389,6 +390,7 @@ namespace INFO
 #define SYSTEM_FRIENDLY_NAME        716
 #define SYSTEM_SCREENSAVER_ACTIVE   717
 #define SYSTEM_ADDON_VERSION        718
+#define SYSTEM_DPMS_ACTIVE          719
 
 #define LIBRARY_HAS_MUSIC           720
 #define LIBRARY_HAS_VIDEO           721
@@ -647,6 +649,7 @@ namespace INFO
 #define LISTITEM_VOTES              (LISTITEM_START + 139)
 #define LISTITEM_STEREOSCOPIC_MODE  (LISTITEM_START + 140)
 #define LISTITEM_IS_STEREOSCOPIC    (LISTITEM_START + 141)
+#define LISTITEM_INPROGRESS         (LISTITEM_START + 142)
 
 #define LISTITEM_PROPERTY_START     (LISTITEM_START + 200)
 #define LISTITEM_PROPERTY_END       (LISTITEM_PROPERTY_START + 1000)
@@ -783,6 +786,7 @@ public:
   int GetPlayTimeRemaining() const;
   int GetTotalPlayTime() const;
   CStdString GetCurrentPlayTimeRemaining(TIME_FORMAT format) const;
+  std::string GetVersionShort(void);
   CStdString GetVersion();
   CStdString GetBuild();
 

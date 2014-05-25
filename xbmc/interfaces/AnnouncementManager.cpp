@@ -36,8 +36,25 @@
 using namespace std;
 using namespace ANNOUNCEMENT;
 
-#define m_announcers XBMC_GLOBAL_USE(ANNOUNCEMENT::CAnnouncementManager::Globals).m_announcers
-#define m_critSection XBMC_GLOBAL_USE(ANNOUNCEMENT::CAnnouncementManager::Globals).m_critSection
+CAnnouncementManager::CAnnouncementManager()
+{ }
+
+CAnnouncementManager::~CAnnouncementManager()
+{
+  Deinitialize();
+}
+
+CAnnouncementManager& CAnnouncementManager::Get()
+{
+  static CAnnouncementManager s_instance;
+  return s_instance;
+}
+
+void CAnnouncementManager::Deinitialize()
+{
+  CSingleLock lock (m_critSection);
+  m_announcers.clear();
+}
 
 void CAnnouncementManager::AddAnnouncer(IAnnouncer *listener)
 {
@@ -172,7 +189,7 @@ void CAnnouncementManager::Announce(AnnouncementFlag flag, const char *sender, c
   else if (item->HasMusicInfoTag())
   {
     id = item->GetMusicInfoTag()->GetDatabaseId();
-    type = "song";
+    type = MediaTypeSong;
 
     // TODO: Can be removed once this is properly handled when starting playback of a file
     if (id <= 0 && !item->GetPath().empty() &&

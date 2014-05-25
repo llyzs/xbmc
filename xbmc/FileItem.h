@@ -25,7 +25,7 @@
  */
 
 #include "guilib/GUIListItem.h"
-#include "utils/Archive.h"
+#include "utils/IArchivable.h"
 #include "utils/ISerializable.h"
 #include "utils/ISortable.h"
 #include "XBDateTime.h"
@@ -294,6 +294,18 @@ public:
   {
     return m_pvrTimerInfoTag;
   }
+
+  /*!
+   \brief Test if this item has a valid resume point set.
+   \return True if this item has a resume point and it is set, false otherwise.
+   */
+  bool IsResumePointSet() const;
+
+  /*!
+   \brief Return the current resume time.
+   \return The time in seconds from the start to resume playing from.
+   */
+  double GetCurrentResumeTime() const;
 
   inline bool HasPictureInfoTag() const
   {

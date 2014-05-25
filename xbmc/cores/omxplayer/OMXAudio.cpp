@@ -41,6 +41,10 @@
 #include "cores/AudioEngine/Utils/AEConvert.h"
 #include "cores/AudioEngine/AEFactory.h"
 
+extern "C" {
+#include "libavutil/crc.h"
+}
+
 using namespace std;
 
 static const uint16_t AC3Bitrates[] = {32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 576, 640};
@@ -240,7 +244,7 @@ bool COMXAudio::PortSettingsChanged()
   {
     // By default audio_render is the clock master, and if output samples don't fit the timestamps, it will speed up/slow down the clock.
     // This tends to be better for maintaining audio sync and avoiding audio glitches, but can affect video/display sync
-    if(CSettings::Get().GetBool("videoplayer.usedisplayasclock"))
+    if(CSettings::Get().GetBool("videoplayer.usedisplayasclock") || (CSettings::Get().GetBool("audiooutput.dualaudio") && CSettings::Get().GetString("audiooutput.audiodevice") != "PI:Analogue"))
     {
       OMX_CONFIG_BOOLEANTYPE configBool;
       OMX_INIT_STRUCTURE(configBool);
@@ -266,7 +270,7 @@ bool COMXAudio::PortSettingsChanged()
   {
     // By default audio_render is the clock master, and if output samples don't fit the timestamps, it will speed up/slow down the clock.
     // This tends to be better for maintaining audio sync and avoiding audio glitches, but can affect video/display sync
-    if(CSettings::Get().GetBool("videoplayer.usedisplayasclock"))
+    if(CSettings::Get().GetBool("videoplayer.usedisplayasclock") || (CSettings::Get().GetBool("audiooutput.dualaudio") && CSettings::Get().GetString("audiooutput.audiodevice") == "PI:Analogue"))
     {
       OMX_CONFIG_BOOLEANTYPE configBool;
       OMX_INIT_STRUCTURE(configBool);
@@ -413,9 +417,6 @@ bool COMXAudio::Initialize(AEAudioFormat format, OMXClock *clock, CDVDStreamInfo
   OMX_ERRORTYPE omx_err;
 
   Deinitialize();
-
-  if(!m_dllAvUtil.Load())
-    return false;
 
   m_HWDecode    = bUseHWDecode;
   m_Passthrough = bUsePassthrough;
@@ -745,8 +746,6 @@ bool COMXAudio::Deinitialize()
     free(m_extradata);
   m_extradata = NULL;
   m_extrasize = 0;
-
-  m_dllAvUtil.Unload();
 
   while(!m_ampqueue.empty())
     m_ampqueue.pop_front();
@@ -1543,7 +1542,7 @@ unsigned int COMXAudio::SyncAC3(BYTE* pData, unsigned int iSize)
     else crc_size = (framesize >> 1) + (framesize >> 3) - 1;
 
     if (crc_size <= iSize - skip)
-      if(m_dllAvUtil.av_crc(m_dllAvUtil.av_crc_get_table(AV_CRC_16_ANSI), 0, &pData[2], crc_size * 2))
+      if(av_crc(av_crc_get_table(AV_CRC_16_ANSI), 0, &pData[2], crc_size * 2))
         continue;
 
     /* if we get here, we can sync */
